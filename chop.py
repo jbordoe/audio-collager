@@ -20,8 +20,15 @@ def slice(infile_data, outfilename, start_ms, end_ms):
     infile.setpos(anchor + start_index)
     out.writeframes(infile.readframes(length))
 
+DEFAULT_CHOP_LENGTH = 500
 
 input_filepath = sys.argv[1]
+
+chop_length = DEFAULT_CHOP_LENGTH
+try:
+    chop_length = int(sys.argv[2])
+except IndexError:
+    pass
 
 infile = wave.open(input_filepath)
 infile_data = {
@@ -35,7 +42,6 @@ infile_data['duration'] = infile_data['frames'] / float(infile_data['fpms'])
 
 outdir = './samples/chopped'
 
-chop_length = 2000
 pointer_pos = 0
 files_generated = 0
 
