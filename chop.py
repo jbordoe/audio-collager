@@ -2,6 +2,7 @@
 
 import sys
 import wave
+import argparse
 
 def slice(infile_data, outfilename, start_ms, end_ms):
     width = infile_data['width']
@@ -20,15 +21,20 @@ def slice(infile_data, outfilename, start_ms, end_ms):
     infile.setpos(anchor + start_index)
     out.writeframes(infile.readframes(length))
 
-DEFAULT_CHOP_LENGTH = 500
+parser = argparse.ArgumentParser(description='Chop up a .wav file.')
+parser.add_argument(
+    '-l', '--length', type=int, required=False, default=500,
+     help='Length of snippets in milliseconds.')
+parser.add_argument(
+    '-i', '--infile', type=argparse.FileType('r'), required=True, help='Path of source file to be chopped.')
+parser.add_argument(
+    '-o', '--outdir', type=str, required=False, default='./samples/chopped', help='Path of source file to be chopped.')
 
-input_filepath = sys.argv[1]
+args = parser.parse_args()
 
-chop_length = DEFAULT_CHOP_LENGTH
-try:
-    chop_length = int(sys.argv[2])
-except IndexError:
-    pass
+chop_length = args.length
+input_filepath = args.infile
+outdir = args.outdir
 
 infile = wave.open(input_filepath)
 infile_data = {
@@ -40,7 +46,6 @@ infile_data = {
 infile_data['fpms'] = infile_data['rate'] / 1000
 infile_data['duration'] = infile_data['frames'] / float(infile_data['fpms'])
 
-outdir = './samples/chopped'
 
 pointer_pos = 0
 files_generated = 0
