@@ -61,7 +61,7 @@ pointer_pos = 0
 files_generated = 0
 
 while pointer_pos < infile_data['duration']:
-    outfile_path = outdir + '/' + str(files_generated+1) + '.wav'
+    outfile_path = outdir + '/' + str(files_generated+1).zfill(4) + '.wav'
 
     start_ms = pointer_pos
     end_ms = pointer_pos + chop_length
