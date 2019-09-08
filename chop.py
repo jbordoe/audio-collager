@@ -1,29 +1,12 @@
 #!/usr/bin/python
 
 import sys
-import wave
 import argparse
 import sqlite3
 import json
-import librosa
 import matplotlib.pyplot as plt
 
-def slice(infile_data, outfilename, start_ms, end_ms):
-    width = infile_data['width']
-    rate = infile_data['rate']
-    fpms = infile_data['fpms']
-    infile = infile_data['infile']
-
-    length = (end_ms - start_ms) * fpms
-    start_index = start_ms * fpms
-
-    out = wave.open(outfilename, "w")
-    out.setparams((infile.getnchannels(), width, rate, length, infile.getcomptype(), infile.getcompname()))
-    
-    infile.rewind()
-    anchor = infile.tell()
-    infile.setpos(anchor + start_index)
-    out.writeframes(infile.readframes(length))
+from lib import util
 
 parser = argparse.ArgumentParser(description='Chop up a .wav file.')
 parser.add_argument(
@@ -36,7 +19,6 @@ parser.add_argument(
 parser.add_argument(
     '-a', '--analyse', action='store_true', help='Extract features of each snippet.')
 
-
 args = parser.parse_args()
 
 chop_length = args.length
@@ -44,44 +26,28 @@ input_filepath = args.infile.name
 outdir = args.outdir
 analyse = args.analyse
 
-infile = wave.open(input_filepath, 'rb')
-infile_data = {
-    'infile': infile,
-    'rate': infile.getframerate(),
-    'frames': infile.getnframes(),
-    'width': infile.getsampwidth()
-}
-infile_data['fpms'] = infile_data['rate'] // 1000
-infile_data['duration'] = infile_data['frames'] // float(infile_data['fpms'])
+input_audio = util.Util.read_audio(input_filepath)
+slices = util.Util.chop_audio(input_audio, chop_length)
 
 conn = sqlite3.connect('db/audio.db')
 cursor = conn.cursor()
 
-pointer_pos = 0
-files_generated = 0
+for i in range(0, len(slices)):
+    outfile_path = outdir + '/' + str(i).zfill(4) + '.wav'
 
-while pointer_pos < infile_data['duration']:
-    outfile_path = outdir + '/' + str(files_generated+1).zfill(4) + '.wav'
-
-    start_ms = pointer_pos
-    end_ms = pointer_pos + chop_length
-
-    slice(infile_data, outfile_path, start_ms, end_ms)
-
-    pointer_pos += chop_length
-    files_generated += 1
-
-    mfcc1_json = None
+    mfcc_json = None
+    audio_slice = slices[i]
+    util.Util.save_audio(audio_slice, outfile_path)
     if analyse:
-        y1, sr1 = librosa.load(outfile_path)
-        mfcc1 = librosa.feature.mfcc(y1,sr1) #Computing MFCC values
-        mfcc1_json = json.dumps(mfcc1.tolist())
+        data = ausio_slice.timeseries
+        sample_rate = audio_slice.sample_rate
+        mfcc = librosa.feature.mfcc(data, sample_rate) #Computing MFCC values
+        mfcc_json = json.dumps(mfcc.tolist())
 
     conn.execute(
             'INSERT INTO samples (source, path, features) VALUES (?, ?, ?)',
-            ['misc', outfile_path, mfcc1_json]
+            ['misc', outfile_path, mfcc_json]
             )
-infile.close
 
 conn.commit()
 conn.close()
