@@ -33,7 +33,7 @@ class Util:
         slices = []
         while pointer < timeseries.size:
             slice_ts = timeseries[pointer:(pointer+window_size_frames-1)]
-            pointer += window_size_frames
+            pointer += int(0.02 * sample_rate)
             slices.append(Util.AudioFile(slice_ts, sample_rate))
         return slices
 
