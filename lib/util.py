@@ -13,6 +13,7 @@ class Util:
         timeseries: np.ndarray
         sample_rate: int
         mfcc: np.ndarray = None
+        chroma_stft: np.ndarray = None
 
     @staticmethod
     def read_audio(path):
@@ -33,21 +34,21 @@ class Util:
         slices = []
         while pointer < timeseries.size:
             slice_ts = timeseries[pointer:(pointer+window_size_frames-1)]
-            pointer += int(0.02 * sample_rate)
+            pointer += window_size_frames // 2
             slices.append(Util.AudioFile(slice_ts, sample_rate))
         return slices
 
     @staticmethod
     def extract_features(audiofile):
-        mfcc = librosa.feature.mfcc(audiofile.timeseries, audiofile.sample_rate)
-        audiofile.mfcc = mfcc
+        audiofile.mfcc = librosa.feature.mfcc(audiofile.timeseries, audiofile.sample_rate)
+        audiofile.chroma_stft = librosa.feature.chroma_stft(y=audiofile.timeseries, sr=audiofile.sample_rate)
 
     @staticmethod
     def audio_dist(a1, a2):
-        return Util.mfcc_dist(a1.mfcc, a2.mfcc)
+        return Util.dist(a1.chroma_stft, a2.chroma_stft)
 
     @staticmethod
-    def mfcc_dist(mfcc1, mfcc2):
+    def dist(mfcc1, mfcc2):
         dist, cost, acc_cost, path = dtw(
                 mfcc1.T, mfcc2.T, dist=lambda x, y: norm(x - y, ord=1)
                 )

@@ -25,7 +25,7 @@ sample_audio = util.Util.read_audio(samplefile)
 
 samples = {}
 
-windows = [50,100,200,500]
+windows = [500,200,100,50]
 
 print('Chopping sample file.')
 for window in windows:
@@ -74,6 +74,8 @@ while pointer < source_audio.timeseries.size:
 
     selected_snippets.append(best_snippet)
     pointer += best_snippet_window
+
+
 sys.stdout.write('\r')
 print('Collage generated.')
 
