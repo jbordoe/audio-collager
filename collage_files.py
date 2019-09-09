@@ -3,6 +3,8 @@
 import sys
 import argparse
 
+import vptree
+
 from lib import util
 
 parser=argparse.ArgumentParser(description='Create a collage based on a given audio file based on snippets from another')
@@ -32,7 +34,8 @@ for window in windows:
     for s in sample_group:
         util.Util.extract_features(s)
 
-    samples[window] = sample_group
+    tree = vptree.VPTree(sample_group, util.Util.audio_dist)
+    samples[window] = tree
 
 selected_snippets = []
 
@@ -62,12 +65,12 @@ while pointer < source_audio.timeseries.size:
         util.Util.extract_features(source_chunk)
 
         group = samples[window]
-        for sample in group:
-            dist = util.Util.mfcc_dist(sample.mfcc, source_chunk.mfcc)
-            if dist < best_snippet_dist:
-                best_snippet_dist = dist
-                best_snippet = sample
-                best_snippet_window = window_size_frames
+        nearest_dist, nearest = group.get_nearest_neighbor(source_chunk)
+
+        if nearest_dist < best_snippet_dist:
+            best_snippet_dist = nearest_dist
+            best_snippet = nearest
+            best_snippet_window = window_size_frames
 
     selected_snippets.append(best_snippet)
     pointer += best_snippet_window
