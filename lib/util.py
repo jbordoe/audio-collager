@@ -2,7 +2,7 @@ from dataclasses import dataclass
 
 import numpy as np
 from numpy.linalg import norm
-from dtw import dtw
+from dtw import accelerated_dtw as dtw
 
 import librosa
 import soundfile as sf
