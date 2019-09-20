@@ -81,6 +81,7 @@ print('Collage generated.')
 
 output_data = []
 for snippet in selected_snippets:
+    snippet = util.Util.declick_sig(snippet, 20)
     output_data.extend(snippet.timeseries)
 
 print('Saving collage file.')

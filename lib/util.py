@@ -6,6 +6,7 @@ from dtw import accelerated_dtw as dtw
 
 import librosa
 import soundfile as sf
+import math
 
 class Util:
     @dataclass
@@ -34,10 +35,48 @@ class Util:
         slices = []
         while pointer < timeseries.size:
             slice_ts = timeseries[pointer:(pointer+window_size_frames-1)]
-            pointer += window_size_frames // 2
+            pointer += max(50, window_size_frames // 4)
             slices.append(Util.AudioFile(slice_ts, sample_rate))
         return slices
 
+    @staticmethod
+    def declick(audiofile, fade_ms):
+        x = audiofile.timeseries
+        sr = audiofile.sample_rate
+
+        fade_frames = (sr * fade_ms) / 1000
+        frames = x.size
+
+        fn = [
+            min(
+                min(i/fade_frames, 1),
+                min((frames-i)/fade_frames, 1)
+            )
+            for i in np.arange(0, frames, 1)
+        ]
+        declicked = x * fn
+
+        return Util.AudioFile(declicked, sr)
+   
+    @staticmethod
+    def declick_sig(audiofile, fade_ms):
+        x = audiofile.timeseries
+        sr = audiofile.sample_rate
+
+        fade_frames = (sr * fade_ms) / 1000
+        frames = x.size
+
+        fn = [
+            min(
+                1/(1+math.exp((0.5-(i/fade_frames))*15)),
+                1/(1+math.exp((0.5-((frames-i)/fade_frames))*15))
+            )
+            for i in np.arange(0, frames, 1)
+        ]
+        declicked = x * fn
+
+        return Util.AudioFile(declicked, sr)
+   
     @staticmethod
     def extract_features(audiofile):
         audiofile.mfcc = librosa.feature.mfcc(audiofile.timeseries, audiofile.sample_rate)
