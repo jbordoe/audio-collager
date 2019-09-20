@@ -4,6 +4,7 @@ import sys
 import argparse
 
 import vptree
+import numpy as np
 
 from lib import util
 
@@ -13,6 +14,10 @@ parser.add_argument(
 parser.add_argument(
     '-s', '--sample_file', type=str, required=True, help='Path of file to be sampled.')
 parser.add_argument(
+    '-d', '--declick_ms', type=int, required=False, help='Decklick interval in milliseconds.')
+parser.add_argument(
+    '-f', '--declick_fn', type=str, choices=['sigmoid', 'linear'], required=False, help='Decklicking function.')
+parser.add_argument(
     '-o', '--outpath', type=str, required=False, default='./collage.wav', help='Path of output file.')
 
 args = parser.parse_args()
@@ -21,11 +26,22 @@ sourcefile = args.source_file
 samplefile = args.sample_file
 outpath    = args.outpath
 
+declick_fn = args.declick_fn
+default_dc_ms = {
+    'sigmoid': 20,
+    'linear': 70,
+}
+if declick_fn:
+    declick_ms = args.declick_ms or default_dc_ms[declick_fn]
+else:
+    declick_ms = 0
+
 sample_audio = util.Util.read_audio(samplefile)
 
 samples = {}
 
 windows = [500,200,100,50]
+windows = [i + declick_ms for i in windows]
 
 print('Chopping sample file.')
 for window in windows:
@@ -73,16 +89,27 @@ while pointer < source_audio.timeseries.size:
             best_snippet_window = window_size_frames
 
     selected_snippets.append(best_snippet)
-    pointer += best_snippet_window
+    pointer += best_snippet_window - int((declick_ms /1000) * source_sr)
 
 
 sys.stdout.write('\r')
 print('Collage generated.')
 
 output_data = []
+i = 0
 for snippet in selected_snippets:
-    snippet = util.Util.declick_sig(snippet, 20)
-    output_data.extend(snippet.timeseries)
+    if declick_fn:
+        snippet = util.Util.declick(snippet, declick_fn, declick_ms)
+
+    x = snippet.timeseries
+    if declick_ms and output_data and i < len(selected_snippets)-1:
+        overlap_frames = int((declick_ms * snippet.sample_rate) / 1000)
+        overlap = np.add(output_data[-overlap_frames:], x[:overlap_frames])
+        output_data = output_data[:-overlap_frames]
+        x = np.concatenate([overlap, x[overlap_frames:]])
+
+    output_data.extend(x)
+    i += 1
 
 print('Saving collage file.')
 output_audio = util.Util.AudioFile(output_data, sample_audio.sample_rate)

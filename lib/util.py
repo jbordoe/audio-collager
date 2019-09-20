@@ -40,42 +40,39 @@ class Util:
         return slices
 
     @staticmethod
-    def declick(audiofile, fade_ms):
+    def declick(audiofile, dc_type, fade_ms):
         x = audiofile.timeseries
         sr = audiofile.sample_rate
 
         fade_frames = (sr * fade_ms) / 1000
         frames = x.size
 
-        fn = [
+        declick_functions = {
+            'sigmoid': Util.__declick_vector_sigmoid,
+            'linear':  Util.__declick_vector_linear,
+        }
+        fn = declick_functions[dc_type](frames, fade_frames)
+        declicked = x * fn
+
+        return Util.AudioFile(declicked, sr)
+
+    def __declick_vector_linear(n_frames, fade_frames):
+        return [
             min(
                 min(i/fade_frames, 1),
-                min((frames-i)/fade_frames, 1)
+                min((n_frames-i)/fade_frames, 1)
             )
-            for i in np.arange(0, frames, 1)
+            for i in np.arange(0, n_frames, 1)
         ]
-        declicked = x * fn
-
-        return Util.AudioFile(declicked, sr)
    
-    @staticmethod
-    def declick_sig(audiofile, fade_ms):
-        x = audiofile.timeseries
-        sr = audiofile.sample_rate
-
-        fade_frames = (sr * fade_ms) / 1000
-        frames = x.size
-
-        fn = [
+    def __declick_vector_sigmoid(n_frames, fade_frames):
+        return [
             min(
                 1/(1+math.exp((0.5-(i/fade_frames))*15)),
-                1/(1+math.exp((0.5-((frames-i)/fade_frames))*15))
+                1/(1+math.exp((0.5-((n_frames-i)/fade_frames))*15))
             )
-            for i in np.arange(0, frames, 1)
+            for i in np.arange(0, n_frames, 1)
         ]
-        declicked = x * fn
-
-        return Util.AudioFile(declicked, sr)
    
     @staticmethod
     def extract_features(audiofile):
