@@ -13,6 +13,7 @@ class Util:
     class AudioFile:
         timeseries: np.ndarray
         sample_rate: int
+        offset_frames: int = None
         mfcc: np.ndarray = None
         chroma_stft: np.ndarray = None
 
@@ -36,7 +37,13 @@ class Util:
         while pointer < timeseries.size:
             slice_ts = timeseries[pointer:(pointer+window_size_frames-1)]
             pointer += max(50, window_size_frames // 4)
-            slices.append(Util.AudioFile(slice_ts, sample_rate))
+            slices.append(
+                Util.AudioFile(
+                    slice_ts,
+                    sample_rate,
+                    offset_frames=pointer
+                )
+            )
         return slices
 
     @staticmethod
@@ -54,7 +61,7 @@ class Util:
         fn = declick_functions[dc_type](frames, fade_frames)
         declicked = x * fn
 
-        return Util.AudioFile(declicked, sr)
+        return Util.AudioFile(declicked, sr, offset_frames=audiofile.offset_frames)
 
     def __declick_vector_linear(n_frames, fade_frames):
         return [
