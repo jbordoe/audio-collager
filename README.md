@@ -1,6 +1,6 @@
-# Audio Collage Tool
+# Audio Collager
 
-Attempt to reconstruct targer audio using snippets of other audio.
+Attempt to reconstruct target audio using snippets of source audio.
 
 ## Setup
 * Python 3
