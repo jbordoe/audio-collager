@@ -4,6 +4,7 @@ from moviepy.editor import *
 import sys
 import argparse
 
+import cv2
 import vptree
 import numpy as np
 import tempfile
@@ -26,6 +27,7 @@ args = parser.parse_args()
 
 sourcefile = args.source_file
 samplefile = args.sample_file
+
 outpath    = args.outpath
 
 declick_fn = args.declick_fn
@@ -39,26 +41,41 @@ else:
     declick_ms = 0
 
 sample_audio = None
-videoclip = VideoFileClip(samplefile)
+
+# Using moviepy here ot quickly extract the audio
+# TODO: can this be done with opencv?
+videoclip_mpy = VideoFileClip(samplefile)
 with tempfile.TemporaryDirectory() as vid_audio_dir:
     print('Reading video file.')
-    audioclip = videoclip.audio
+    audioclip = videoclip_mpy.audio
 
     print('Extracting audio from video.')
     vid_audio_name = vid_audio_dir + '/temp.wav'
     audioclip.write_audiofile(vid_audio_name)
     sample_audio = util.Util.read_audio(vid_audio_name)
 
+video_frames = []
+print('Reading frames from  video file.')
+videoclip = cv2.VideoCapture(samplefile)
+while(True):
+    # Capture each frame
+    ret, frame = videoclip.read()
+
+    if ret == True:
+        video_frames.append(frame)
+    else:
+        break
+
 samples = {}
 
-windows = [1000,500,200,100]
+windows = [1000,500]
 windows = [i + declick_ms for i in windows]
 
 
 print('Chopping sample audio.')
 for window in windows:
     sample_group = util.Util.chop_audio(sample_audio, window)
-    
+
     for s in sample_group:
         util.Util.extract_features(s)
 
@@ -73,10 +90,14 @@ source_sr = source_audio.sample_rate
 
 pointer = 0
 
-vfps = videoclip.fps
-v_frames = vfps * videoclip.duration
+vfps = videoclip.get(cv2.CAP_PROP_FPS)
+# Video duration in seconds
+vlen = (videoclip.get(cv2.CAP_PROP_FRAME_COUNT) / videoclip.get(cv2.CAP_PROP_FPS))
+v_frames = len(video_frames) # could also use CAP_PROP_FRAME_COUNT
+# ratio of video to audio frames
 vf2as = v_frames / sample_audio.timeseries.size
-vs2as = videoclip.duration / sample_audio.timeseries.size
+# duration, in seconds of video represented by each audio sample
+vs2as = vlen / sample_audio.timeseries.size
 
 print('Generating collage with samples.')
 while pointer < source_audio.timeseries.size:
@@ -106,16 +127,16 @@ while pointer < source_audio.timeseries.size:
             best_snippet = nearest
             best_snippet_window = window_size_frames
 
-    v_start = min(
-        best_snippet.offset_frames * vs2as,
-	videoclip.duration
-    )
-    v_end = min(
-        (best_snippet.offset_frames + best_snippet.timeseries.size) * vs2as,
-	videoclip.duration
-    )
+    v_start = int(min(
+        best_snippet.offset_frames * vf2as,
+	v_frames - 1
+    ))
+    v_end = int(min(
+        (best_snippet.offset_frames + best_snippet.timeseries.size) * vf2as,
+        v_frames - 1
+    ))
 
-    selected_snippets.append(videoclip.subclip(v_start, v_end))
+    selected_snippets.append(video_frames[v_start:v_end])
     pointer += best_snippet_window - int((declick_ms /1000) * source_sr)
 
 
@@ -139,7 +160,17 @@ print('Collage generated.')
 #    i += 1
 
 print('Saving collage file.')
-final_clip = concatenate_videoclips(selected_snippets)
-final_clip.write_videofile(outpath)
+out = cv2.VideoWriter(
+    outpath,
+    int(videoclip.get(cv2.CAP_PROP_FOURCC)),
+    vfps,
+    (
+        int(videoclip.get(cv2.CAP_PROP_FRAME_WIDTH)),
+        int(videoclip.get(cv2.CAP_PROP_FRAME_HEIGHT))
+    )
+)
 
+# Cleanup
+videoclip.release()
+out.release()
 print('Done!')

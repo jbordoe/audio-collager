@@ -71,7 +71,7 @@ class Util:
             )
             for i in np.arange(0, n_frames, 1)
         ]
-   
+
     def __declick_vector_sigmoid(n_frames, fade_frames):
         return [
             min(
@@ -80,7 +80,7 @@ class Util:
             )
             for i in np.arange(0, n_frames, 1)
         ]
-   
+
     @staticmethod
     def extract_features(audiofile):
         audiofile.mfcc = librosa.feature.mfcc(audiofile.timeseries, audiofile.sample_rate)
