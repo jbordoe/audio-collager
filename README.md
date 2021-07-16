@@ -37,8 +37,9 @@ python collager.py chop -l 250 -f sample.wav -o sample_slices/
 ### Use Cases
 
 Let's begin with two breakbats:
-Black Heat [Zimba Ku](docs/audio/breaks/black_heat__zimba_ku.wav) [source](https://www.youtube.com/watch?v=mybkf-H8mkA)
-The Winstons [Amen Brother](docs/audio/breaks/amen_brother.wav) [source](https://www.youtube.com/watch?v=GxZuq57_bYM)
+
+* Black Heat [Zimba Ku](docs/audio/breaks/black_heat__zimba_ku.wav) ([source](https://www.youtube.com/watch?v=mybkf-H8mkA))
+* The Winstons [Amen Brother](docs/audio/breaks/amen_brother.wav) ([source](https://www.youtube.com/watch?v=GxZuq57_bYM))
 
 We want to recreate the drum pattern of the former using audio from the latter.
 
