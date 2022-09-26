@@ -1,5 +1,7 @@
 # Audio Collager
 
+![](https://github.com/jbordoe/audio-collage/blob/master/docs/collager_b.png?raw=true)
+
 Attempt to reconstruct target audio using snippets of source audio.
 
 ## Setup
