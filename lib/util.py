@@ -83,11 +83,23 @@ class Util:
    
     @staticmethod
     def extract_features(audiofile):
-        audiofile.mfcc = librosa.feature.mfcc(audiofile.timeseries, audiofile.sample_rate)
-        audiofile.chroma_stft = librosa.feature.chroma_stft(y=audiofile.timeseries, sr=audiofile.sample_rate)
+        audiofile.mfcc = librosa.feature.mfcc(
+                y=audiofile.timeseries,
+                sr=audiofile.sample_rate,
+                n_fft = min(2048, len(audiofile.timeseries))
+        )
+#        audiofile.chroma_stft = librosa.feature.chroma_stft(
+#                y=audiofile.timeseries,
+#                sr=audiofile.sample_rate,
+#                n_fft = min(2048, len(audiofile.timeseries))
+#        )
 
     @staticmethod
-    def audio_dist(a1, a2):
+    def mfcc_dist(a1, a2):
+        return Util.dist(a1.mfcc, a2.mfcc)
+
+    @staticmethod
+    def chroma_dist(a1, a2):
         return Util.dist(a1.chroma_stft, a2.chroma_stft)
 
     @staticmethod
