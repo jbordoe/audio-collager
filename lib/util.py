@@ -17,6 +17,9 @@ class Util:
         mfcc: np.ndarray = None
         chroma_stft: np.ndarray = None
 
+        def n_samples(self):
+            return len(self.timeseries)
+
     @staticmethod
     def read_audio(path):
         timeseries, sample_rate = librosa.load(path)
@@ -45,6 +48,26 @@ class Util:
                 )
             )
         return slices
+
+    @staticmethod
+    def concatenate_audio(audio_list, declick_fn=None, declick_ms=0):
+        output_data = []
+        sample_rate = None
+        for i, snippet in enumerate(audio_list):
+            if declick_fn:
+                snippet = Util.declick(snippet, declick_fn, declick_ms)
+
+            x = snippet.timeseries
+            if declick_ms and output_data and i < len(list(audio_list))-1:
+                overlap_frames = int((declick_ms * snippet.sample_rate) / 1000)
+                overlap = np.add(output_data[-overlap_frames:], x[:overlap_frames])
+                output_data = output_data[:-overlap_frames]
+                sample_rate = snippet.sample_rate if not sample_rate else sample_rate
+                x = np.concatenate([overlap, x[overlap_frames:]])
+
+            output_data.extend(x)
+        output_audio = Util.AudioFile(output_data, sample_rate)
+        return output_audio
 
     @staticmethod
     def declick(audiofile, dc_type, fade_ms):
