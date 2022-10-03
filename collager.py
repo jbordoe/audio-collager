@@ -13,7 +13,10 @@ from lib import util
 
 DeclickFn = StrEnum('Declickfn', {k: k for k in ['sigmoid', 'linear']})
 
-def main(
+app = typer.Typer()
+
+@app.command()
+def collage(
     target_file: str = typer.Option(..., "--target", "-t", help="Path of file to be replicated."),
     sample_file: str = typer.Option(..., "--sample", "-s", help="Path of file to be sampled."),
     outpath: str = typer.Option('./collage.wav', "--outpath", "-o", help="Path of output file."),
@@ -113,5 +116,40 @@ def main(
 
     print('[green bold]Done!')
 
+@app.command()
+def chop(
+    chop_length: int = typer.Option(500, "--length", "-l", help="Length of snippets in milliseconds"),
+    input_filepath: str = typer.Option(..., "--file", "-f", help="Path of file to be chopped."),
+    outdir: str = typer.Option(..., "--outdir", "-o", help="Path of directory to write snippets.")
+):
+    """
+    Chop up a .wav file
+    """
+    input_audio = util.Util.read_audio(input_filepath)
+    slices = util.Util.chop_audio(input_audio, chop_length)
+
+#    conn = sqlite3.connect('db/audio.db')
+#    cursor = conn.cursor()
+
+    for i in track(range(0, len(slices)), description=f'[cyan]Chopping [cyan bold]{input_filepath}[cyan]...'):
+        outfile_path = outdir + '/' + str(i).zfill(4) + '.wav'
+
+#        mfcc_json = None
+        audio_slice = slices[i]
+        util.Util.save_audio(audio_slice, outfile_path)
+#        if analyse:
+#            data = ausio_slice.timeseries
+#            sample_rate = audio_slice.sample_rate
+#            mfcc = librosa.feature.mfcc(data, sample_rate) #Computing MFCC values
+#            mfcc_json = json.dumps(mfcc.tolist())
+#
+#        conn.execute(
+#                'INSERT INTO samples (source, path, features) VALUES (?, ?, ?)',
+#                ['misc', outfile_path, mfcc_json]
+#                )
+
+#    conn.commit()
+#    conn.close()
+
 if __name__ == "__main__":
-    typer.run(main)
+    app()

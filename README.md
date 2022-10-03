@@ -13,8 +13,18 @@ poetry install
 ```
 
 ## Run
-Here's a simple example run
+`puython collager.py COMMAND`
+
+Run `python collager.py collage` for more details.
+
+### Examples
+#### Creating a collage
 ```bash
-python collage_files -i target.wav -s source.wav -o tootssq.wav
+python collager.py collage -t target.wav -s source.wav -o collage.wav
 ```
-Run `python collage_files.py --help` for more details.
+
+#### Chopping audio
+Chop the given file in to snippets of 250 milliseconds
+```bash
+python collager.py chop -l 250 -f sample.wav -o sample_slices/
+```
