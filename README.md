@@ -5,12 +5,16 @@
 Attempt to reconstruct target audio using snippets of source audio.
 
 ## Setup
-* Python 3
-* `pip install -r requirements.txt`
+
+Install Python >3.9 and the dependencies with [poetry](https://python-poetry.org/):
+
+```python
+poetry install
+```
 
 ## Run
 Here's a simple example run
 ```bash
- -i toots.wav -s toots.wav -o tootssq.wav
+python collage_files -i target.wav -s source.wav -o tootssq.wav
 ```
 Run `python collage_files.py --help` for more details.
