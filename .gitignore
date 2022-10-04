@@ -2,6 +2,5 @@ samples/*
 melody/*
 tmp
 *.swp
-*.wav
 *.pyprof
 *.pyprof.log
