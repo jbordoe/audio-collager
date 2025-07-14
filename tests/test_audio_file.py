@@ -35,3 +35,24 @@ def test_n_samples():
     )
 
     assert audio_file.n_samples() == 5
+
+def test_hash():
+    """
+    Tests that the hash method returns the correct hash.
+    """
+    audio_file_a = AudioFile(
+        timeseries=np.array([1, 2, 3, 4, 5]),
+        sample_rate=44100
+    )
+    audio_file_b = AudioFile(
+        timeseries=audio_file_a.timeseries,
+        sample_rate=12345
+    )
+    audio_file_c = AudioFile(
+        timeseries=np.array([100,200,300]),
+        sample_rate=audio_file_a.sample_rate
+    )
+    assert isinstance(audio_file_a.hash(), str)
+    assert audio_file_a.hash() != audio_file_b.hash()
+    assert audio_file_a.hash() != audio_file_c.hash()
+    assert audio_file_b.hash() != audio_file_c.hash()
