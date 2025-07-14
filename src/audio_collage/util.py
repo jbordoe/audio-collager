@@ -1,16 +1,14 @@
 import numpy as np
-from numpy.linalg import norm
-from dtw import accelerated_dtw as dtw
 
 import librosa
-import soundfile as sf
 import math
+from typing import List
 
 from .audio_segment import AudioSegment
 
 class Util:
     @staticmethod
-    def chop_audio(audiofile, window_size_ms):
+    def chop_audio(audiofile: AudioSegment, window_size_ms: int):
         pointer = 0
         timeseries = audiofile.timeseries
         sample_rate = audiofile.sample_rate
@@ -28,7 +26,11 @@ class Util:
         return slices
 
     @staticmethod
-    def concatenate_audio(audio_list, declick_fn=None, declick_ms=0):
+    def concatenate_audio(
+        audio_list: List[AudioSegment],
+        declick_fn: str = None,
+        declick_ms: int = 0
+    ):
         output_data = []
         sample_rate = None
         for i, snippet in enumerate(audio_list):
@@ -48,7 +50,11 @@ class Util:
         return output_audio
 
     @staticmethod
-    def declick(audiofile, dc_type, fade_ms):
+    def declick(
+        audiofile: AudioSegment,
+        dc_type: str,
+        fade_ms: int
+    ):
         x = audiofile.timeseries
         sr = audiofile.sample_rate
 
@@ -64,7 +70,7 @@ class Util:
 
         return AudioSegment(declicked, sr, offset_frames=audiofile.offset_frames)
 
-    def __declick_vector_linear(n_frames, fade_frames):
+    def __declick_vector_linear(n_frames: int, fade_frames: int):
         return [
             min(
                 min(i/fade_frames, 1),
@@ -73,7 +79,7 @@ class Util:
             for i in np.arange(0, n_frames, 1)
         ]
    
-    def __declick_vector_sigmoid(n_frames, fade_frames):
+    def __declick_vector_sigmoid(n_frames: int, fade_frames: int):
         return [
             min(
                 1/(1+math.exp((0.5-(i/fade_frames))*15)),
@@ -83,7 +89,7 @@ class Util:
         ]
    
     @staticmethod
-    def extract_features(audiofile):
+    def extract_features(audiofile: AudioSegment):
         audiofile.mfcc = librosa.feature.mfcc(
                 y=audiofile.timeseries,
                 sr=audiofile.sample_rate,
