@@ -1,4 +1,5 @@
 from .util import Util
+from .audio_dist import AudioDist
 from .audio_mapper import AudioMapper
 from .audio_segment import AudioSegment
 
@@ -38,9 +39,9 @@ class Collager:
         windows = [i + declick_ms for i in windows]
 
         dist_fn_map: Dict[str, Callable[[AudioSegment, AudioSegment], float]] = {
-            'mfcc': Util.mfcc_dist,
-            'fast_mfcc': Util.fast_mfcc_dist,
-            'mean_mfcc': Util.mean_mfcc_dist,
+            'mfcc': AudioDist.mfcc_dist,
+            'fast_mfcc': AudioDist.fast_mfcc_dist,
+            'mean_mfcc': AudioDist.mean_mfcc_dist,
         }
 
         selected_distance_fn = dist_fn_map.get(distance_fn.value)

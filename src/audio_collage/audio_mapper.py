@@ -5,6 +5,7 @@ import os
 import pickle
 from vptree import VPTree
 
+from .audio_dist import AudioDist
 from .audio_segment import AudioSegment
 from .util import Util
 
@@ -15,7 +16,7 @@ class AudioMapper:
         self,
         target_audio: AudioSegment,
         sample_audio: AudioSegment,
-        distance_fn: callable = Util.mean_mfcc_dist
+        distance_fn: callable = AudioDist.mean_mfcc_dist
     ):
         self.source: AudioSegment = sample_audio
         self.target: AudioSegment = target_audio
