@@ -5,3 +5,4 @@ tmp
 *.pyprof
 *.pyprof.log
 __pycache__/
+.cache/

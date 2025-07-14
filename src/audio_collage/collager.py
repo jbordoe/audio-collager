@@ -1,6 +1,8 @@
 from rich.progress import Progress, track
 from typing import Dict, List, Tuple
 
+import os
+import pickle
 import vptree
 
 from .audio_file import AudioFile
@@ -8,6 +10,7 @@ from .util import Util
 
 VPTreeIndex = vptree.VPTree
 
+CACHE_DIR = '.cache'
 
 class Collager:
     def __init__(self, target_audio: AudioFile, sample_audio: AudioFile):
@@ -16,22 +19,7 @@ class Collager:
         self.indices: Dict[int, VPTreeIndex] = {}
 
     def collage(self, windows: List[int] = [200], overlap_ms: int = 0) -> List[AudioFile]:
-        samples: Dict[int, List[AudioFile]] = {}
-
-        with Progress() as progress:
-            task = progress.add_task(
-                description="[cyan]Chopping and analysing sample audio...",
-                total=self.source.n_samples() * len(windows)
-            )
-            for window in windows:
-                sample_group = Util.chop_audio(self.source, window)
-
-                for s in sample_group:
-                    Util.extract_features(s)
-                    progress.update(task, advance=int((window / 1000) * self.source.sample_rate))
-
-                self._index(sample_group, window)
-
+        self._chop(windows)
         selected_snippets: List[AudioFile] = []
 
         Util.extract_features(self.target)
@@ -67,11 +55,68 @@ class Collager:
 
         return selected_snippets
 
+    def _chop(self, windows: List[int]) -> None:
+        with Progress() as progress:
+            task = progress.add_task(
+                description="[cyan]Chopping and analysing sample audio...",
+                total=self.source.n_samples() * len(windows)
+            )
+            hash = self.source.hash()
+            for window in windows:
+                if self._cache_load(hash, window):
+                    progress.update(task, advance = self.source.n_samples())
+                    continue
+
+                sample_group = Util.chop_audio(self.source, window)
+
+                for s in sample_group:
+                    Util.extract_features(s)
+                    progress.update(task, advance=int((window / 1000) * self.source.sample_rate))
+
+                self._index(sample_group, window, hash)
+
     def _search(self, query_audio: AudioFile, key: int) -> Tuple[float, AudioFile]:
         index = self.indices[key]
         nearest_dist, nearest = index.get_nearest_neighbor(query_audio)
         return nearest_dist, nearest
 
-    def _index(self, samples: List[AudioFile], key: int) -> None:
+    def _index(self, samples: List[AudioFile], key: int, hash: str) -> None:
         tree = vptree.VPTree(samples, Util.mfcc_dist)
         self.indices[key] = tree
+        self._cache_vptree(hash, key)
+    
+    def _cache_path(self, hash: str, key: int) -> str:
+        return os.path.join(CACHE_DIR, f"{hash}.{key}.pkl")
+
+    def _cache_vptree(self, hash: str, key: int) -> None:
+        if not os.path.exists(CACHE_DIR):
+            os.makedirs(CACHE_DIR)
+
+        cache_path = self._cache_path(hash, key)
+        with open(cache_path, 'wb') as f:
+            pickle.dump(self.indices[key], f)
+
+    def _clear_cache(self, hash: str, key: int) -> None:
+        cache_path = self._cache_path(hash, key)
+        if os.path.exists(cache_path):
+            os.remove(cache_path)
+
+    def _cache_load(self, hash: str, key: int) -> bool:
+        if not os.path.exists(CACHE_DIR):
+            return False
+
+        cache_path = self._cache_path(hash, key)
+        try:
+            with open(cache_path, 'rb') as f:
+                index = pickle.load(f)
+                if index is None or not isinstance(index, vptree.VPTree):
+                    raise EOFError
+            
+                self.indices[key] = index
+                return True
+        except FileNotFoundError:
+            return False
+        except EOFError:
+            print(f'Error loading cache, removing file')
+            self._clear_cache(hash, key)
+            return False
