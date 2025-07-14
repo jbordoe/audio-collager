@@ -3,7 +3,7 @@ import hashlib
 import numpy as np
 
 @dataclass
-class AudioFile:
+class AudioSegment:
     timeseries: np.ndarray
     sample_rate: int
     offset_frames: int = None

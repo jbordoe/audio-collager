@@ -1,6 +1,6 @@
 from .util import Util
 from .audio_mapper import AudioMapper
-from .audio_file import AudioFile
+from .audio_segment import AudioSegment
 
 from rich import print
 from rich.progress import Progress, SpinnerColumn, TextColumn, track
@@ -37,7 +37,7 @@ class Collager:
         windows = [500, 200, 100, 50]
         windows = [i + declick_ms for i in windows]
 
-        dist_fn_map: Dict[str, Callable[[AudioFile, AudioFile], float]] = {
+        dist_fn_map: Dict[str, Callable[[AudioSegment, AudioSegment], float]] = {
             'mfcc': Util.mfcc_dist,
             'fast_mfcc': Util.fast_mfcc_dist,
             'mean_mfcc': Util.mean_mfcc_dist,

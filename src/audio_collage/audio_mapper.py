@@ -5,7 +5,7 @@ import os
 import pickle
 from vptree import VPTree
 
-from .audio_file import AudioFile
+from .audio_segment import AudioSegment
 from .util import Util
 
 CACHE_DIR = '.cache'
@@ -13,18 +13,18 @@ CACHE_DIR = '.cache'
 class AudioMapper:
     def __init__(
         self,
-        target_audio: AudioFile,
-        sample_audio: AudioFile,
+        target_audio: AudioSegment,
+        sample_audio: AudioSegment,
         distance_fn: callable = Util.mean_mfcc_dist
     ):
-        self.source: AudioFile = sample_audio
-        self.target: AudioFile = target_audio
+        self.source: AudioSegment = sample_audio
+        self.target: AudioSegment = target_audio
         self.indices: Dict[int, VPTree] = {}
         self.distance_fn = distance_fn
 
-    def map_audio(self, windows: List[int] = [200], overlap_ms: int = 0) -> List[AudioFile]:
+    def map_audio(self, windows: List[int] = [200], overlap_ms: int = 0) -> List[AudioSegment]:
         self._chop(windows)
-        selected_snippets: List[AudioFile] = []
+        selected_snippets: List[AudioSegment] = []
 
         Util.extract_features(self.target)
         target_sr = self.target.sample_rate
@@ -36,12 +36,12 @@ class AudioMapper:
                 pct_complete = (pointer / self.target.timeseries.size) * 100 if pointer else 0
                 progress.update(task, completed=pct_complete)
 
-                best_snippet: AudioFile = None
+                best_snippet: AudioSegment = None
                 best_snippet_dist: float = float('inf')
                 best_snippet_window: int = 0
                 for window in windows:
                     window_size_frames = int((window / 1000) * target_sr)
-                    target_chunk = AudioFile(
+                    target_chunk = AudioSegment(
                             self.target.timeseries[pointer:pointer + window_size_frames - 1],
                             target_sr,
                             )
@@ -71,7 +71,7 @@ class AudioMapper:
                     progress.update(task, advance = self.source.n_samples())
                     continue
 
-                sample_group: List[AudioFile] = Util.chop_audio(self.source, window)
+                sample_group: List[AudioSegment] = Util.chop_audio(self.source, window)
 
                 for s in sample_group:
                     Util.extract_features(s)
@@ -79,12 +79,12 @@ class AudioMapper:
 
                 self._index(sample_group, window, hash)
 
-    def _search(self, query_audio: AudioFile, key: int) -> Tuple[float, AudioFile]:
+    def _search(self, query_audio: AudioSegment, key: int) -> Tuple[float, AudioSegment]:
         index = self.indices[key]
         nearest_dist, nearest = index.get_nearest_neighbor(query_audio)
         return nearest_dist, nearest
 
-    def _index(self, samples: List[AudioFile], key: int, hash: str) -> None:
+    def _index(self, samples: List[AudioSegment], key: int, hash: str) -> None:
         tree = VPTree(samples, self.distance_fn)
         self.indices[key] = tree
         self._cache_vptree(hash, key)

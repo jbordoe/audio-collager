@@ -6,13 +6,13 @@ import librosa
 import soundfile as sf
 import math
 
-from .audio_file import AudioFile
+from .audio_segment import AudioSegment
 
 class Util:
     @staticmethod
     def read_audio(path):
         timeseries, sample_rate = librosa.load(path)
-        return AudioFile(timeseries, sample_rate, path=path)
+        return AudioSegment(timeseries, sample_rate, path=path)
 
     @staticmethod
     def save_audio(audiofile, path):
@@ -29,7 +29,7 @@ class Util:
         while pointer < timeseries.size:
             slice_ts = timeseries[pointer:(pointer+window_size_frames-1)]
             pointer += max(50, window_size_frames // 4)
-            slices.append(AudioFile(
+            slices.append(AudioSegment(
                 slice_ts,
                 sample_rate,
                 offset_frames=pointer
@@ -53,7 +53,7 @@ class Util:
                 x = np.concatenate([overlap, x[overlap_frames:]])
 
             output_data.extend(x)
-        output_audio = AudioFile(np.array(output_data), sample_rate)
+        output_audio = AudioSegment(np.array(output_data), sample_rate)
         return output_audio
 
     @staticmethod
@@ -71,7 +71,7 @@ class Util:
         fn = declick_functions[dc_type](frames, fade_frames)
         declicked = x * fn
 
-        return AudioFile(declicked, sr, offset_frames=audiofile.offset_frames)
+        return AudioSegment(declicked, sr, offset_frames=audiofile.offset_frames)
 
     def __declick_vector_linear(n_frames, fade_frames):
         return [

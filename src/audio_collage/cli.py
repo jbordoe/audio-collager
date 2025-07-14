@@ -10,7 +10,7 @@ import numpy as np
 
 from .util import Util
 from .audio_mapper import AudioMapper
-from .audio_file import AudioFile
+from .audio_segment import AudioSegment
 from .collager import Collager
 
 DeclickFn = Collager.DeclickFn
