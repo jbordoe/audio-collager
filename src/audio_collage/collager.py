@@ -3,20 +3,24 @@ from typing import Dict, List, Tuple
 
 import os
 import pickle
-import vptree
+from vptree import VPTree
 
 from .audio_file import AudioFile
 from .util import Util
 
-VPTreeIndex = vptree.VPTree
-
 CACHE_DIR = '.cache'
 
 class Collager:
-    def __init__(self, target_audio: AudioFile, sample_audio: AudioFile):
+    def __init__(
+        self,
+        target_audio: AudioFile,
+        sample_audio: AudioFile,
+        distance_fn: callable = Util.mean_mfcc_dist
+    ):
         self.source: AudioFile = sample_audio
         self.target: AudioFile = target_audio
-        self.indices: Dict[int, VPTreeIndex] = {}
+        self.indices: Dict[int, VPTree] = {}
+        self.distance_fn = distance_fn
 
     def collage(self, windows: List[int] = [200], overlap_ms: int = 0) -> List[AudioFile]:
         self._chop(windows)
@@ -61,13 +65,13 @@ class Collager:
                 description="[cyan]Chopping and analysing sample audio...",
                 total=self.source.n_samples() * len(windows)
             )
-            hash = self.source.hash()
+            hash: str = self.source.hash()
             for window in windows:
                 if self._cache_load(hash, window):
                     progress.update(task, advance = self.source.n_samples())
                     continue
 
-                sample_group = Util.chop_audio(self.source, window)
+                sample_group: List[AudioFile] = Util.chop_audio(self.source, window)
 
                 for s in sample_group:
                     Util.extract_features(s)
@@ -81,23 +85,26 @@ class Collager:
         return nearest_dist, nearest
 
     def _index(self, samples: List[AudioFile], key: int, hash: str) -> None:
-        tree = vptree.VPTree(samples, Util.mfcc_dist)
+        tree = VPTree(samples, self.distance_fn)
         self.indices[key] = tree
         self._cache_vptree(hash, key)
     
     def _cache_path(self, hash: str, key: int) -> str:
-        return os.path.join(CACHE_DIR, f"{hash}.{key}.pkl")
+        return os.path.join(
+            CACHE_DIR,
+            f"{hash}.{key}.{self.distance_fn.__name__}.vptree"
+        )
 
     def _cache_vptree(self, hash: str, key: int) -> None:
         if not os.path.exists(CACHE_DIR):
             os.makedirs(CACHE_DIR)
 
-        cache_path = self._cache_path(hash, key)
+        cache_path: str = self._cache_path(hash, key)
         with open(cache_path, 'wb') as f:
             pickle.dump(self.indices[key], f)
 
     def _clear_cache(self, hash: str, key: int) -> None:
-        cache_path = self._cache_path(hash, key)
+        cache_path: str = self._cache_path(hash, key)
         if os.path.exists(cache_path):
             os.remove(cache_path)
 
@@ -105,11 +112,11 @@ class Collager:
         if not os.path.exists(CACHE_DIR):
             return False
 
-        cache_path = self._cache_path(hash, key)
+        cache_path: str = self._cache_path(hash, key)
         try:
             with open(cache_path, 'rb') as f:
-                index = pickle.load(f)
-                if index is None or not isinstance(index, vptree.VPTree):
+                index: VPTree = pickle.load(f)
+                if index is None or not isinstance(index, VPTree):
                     raise EOFError
             
                 self.indices[key] = index
