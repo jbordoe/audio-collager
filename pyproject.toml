@@ -4,7 +4,11 @@ version = "0.1.0"
 description = ""
 authors = ["Jesse Bordoe <jesse.bordoe@gmail.com>"]
 readme = "README.md"
-packages = [{include = "audio_collage"}]
+packages = [{include = "audio_collage", from = "src"}]
+
+[tool.poetry.scripts]
+audio-collage = "audio_collage.cli:app"
+
 
 [tool.poetry.dependencies]
 python = "^3.9"

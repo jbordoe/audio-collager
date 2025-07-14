@@ -2,7 +2,7 @@ from rich.progress import Progress, track
 
 import vptree
 
-from lib.util import Util
+from .util import Util
 
 class Collager:
     def __init__(self, target_audio, sample_audio):

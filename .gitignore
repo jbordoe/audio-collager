@@ -4,3 +4,4 @@ tmp
 *.swp
 *.pyprof
 *.pyprof.log
+__pycache__/

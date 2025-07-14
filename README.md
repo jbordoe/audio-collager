@@ -20,18 +20,18 @@ poetry install
 ## Run
 `puython collager.py COMMAND`
 
-Run `python collager.py --help` for more details.
+Run `poetry run audio-collage --help` for more details.
 
 ### Examples
 #### Creating a collage
 ```bash
-python collager.py collage -t target.wav -s source.wav -o collage.wav
+poetry run audio-collage collage -t target.wav -s source.wav -o collage.wav
 ```
 
 #### Chopping audio
 Chop the given file in to snippets of 250 milliseconds
 ```bash
-python collager.py chop -l 250 -f sample.wav -o sample_slices/
+poetry run audio-collage chop -l 250 -f sample.wav -o sample_slices/
 ```
 
 ### Use Cases
@@ -44,6 +44,6 @@ Let's begin with two breakbeats:
 We want to recreate the drum pattern of the former using audio from the latter.
 
 ```bash
-python collage_files.py -i docs/audio/breaks/black_heat__zimba_ku.wav -s docs/audio/breaks/amen_brother.wav -o amen_zimba.wav -f sigmoid 
+poetry run audio-collage collage -t docs/audio/breaks/amen_brother.wav -s docs/audio/breaks/black_heat__zimba_ku.wav -o docs/audio/breaks/out/amen_zimba.wav
 ```
 You can listen to the output [here](docs/audio/breaks/out/amen_zimba.wav)

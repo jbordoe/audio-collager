@@ -8,8 +8,8 @@ from rich.progress import Progress, SpinnerColumn, TextColumn, track
 
 import numpy as np
 
-from lib.util import Util
-from lib.collager import Collager
+from .util import Util
+from .collager import Collager
 
 DeclickFn = StrEnum('Declickfn', {k: k for k in ['sigmoid', 'linear']})
 
