@@ -31,8 +31,8 @@ class Collager:
         else:
             declick_ms = 0
 
-        sample_audio = Util.read_audio(sample_file)
-        target_audio = Util.read_audio(target_file)
+        sample_audio = AudioSegment.from_file(sample_file)
+        target_audio = AudioSegment.from_file(target_file)
 
         windows = [500, 200, 100, 50]
         windows = [i + declick_ms for i in windows]
@@ -61,6 +61,6 @@ class Collager:
         )
 
         print(f'[cyan]Saving collage to [yellow]{outpath}[cyan]...')
-        Util.save_audio(output_audio, outpath)
+        output_audio.to_file(outpath)
 
         print('[green bold]Done!')

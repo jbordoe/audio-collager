@@ -10,15 +10,6 @@ from .audio_segment import AudioSegment
 
 class Util:
     @staticmethod
-    def read_audio(path):
-        timeseries, sample_rate = librosa.load(path)
-        return AudioSegment(timeseries, sample_rate, path=path)
-
-    @staticmethod
-    def save_audio(audiofile, path):
-        sf.write(path, audiofile.timeseries, audiofile.sample_rate, format='wav')
-
-    @staticmethod
     def chop_audio(audiofile, window_size_ms):
         pointer = 0
         timeseries = audiofile.timeseries

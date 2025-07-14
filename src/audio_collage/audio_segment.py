@@ -1,6 +1,8 @@
 from dataclasses import dataclass
 import hashlib
+import librosa
 import numpy as np
+import soundfile as sf
 
 @dataclass
 class AudioSegment:
@@ -11,6 +13,14 @@ class AudioSegment:
     mfcc_mean: np.ndarray = None
     chroma_stft: np.ndarray = None
     path: str = None
+
+    @staticmethod
+    def from_file(path):
+        timeseries, sample_rate = librosa.load(path)
+        return AudioSegment(timeseries, sample_rate, path=path)
+
+    def to_file(self, path):
+        sf.write(path, self.timeseries, self.sample_rate, format='wav')
 
     def n_samples(self) -> int:
         return len(self.timeseries)

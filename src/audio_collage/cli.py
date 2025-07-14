@@ -60,13 +60,13 @@ def chop(
     """
     Chop up a .wav file
     """
-    input_audio = Util.read_audio(input_filepath)
+    input_audio = AudioSegment.from_file(input_filepath)
     slices = Util.chop_audio(input_audio, chop_length)
 
     for i in track(range(0, len(slices)), description=f'[cyan]Chopping [cyan bold]{input_filepath}[cyan]...'):
         outfile_path = outdir + '/' + str(i).zfill(4) + '.wav'
         audio_slice = slices[i]
-        Util.save_audio(audio_slice, outfile_path)
+        audio_slice.to_file(outfile_path)
 
 @app.command()
 def example():

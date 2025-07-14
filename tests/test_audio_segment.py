@@ -1,4 +1,6 @@
 import numpy as np
+import os
+
 from audio_collage.audio_segment import AudioSegment
 
 def test_audio_segment_creation():
@@ -21,6 +23,25 @@ def test_audio_segment_creation():
     assert audio_segment.offset_frames is None
     assert audio_segment.mfcc is None
     assert audio_segment.chroma_stft is None
+
+def test_from_file():
+    """
+    Tests that an AudioSegment object is created with the correct attributes.
+    """
+    path = "./tests/data/test.wav"
+    audio_segment = AudioSegment.from_file(path)
+    assert audio_segment.path == path
+
+def test_to_file():
+    """
+    Tests writing an AudioSegment to a file.
+    """
+    path = "./tests/data/test.wav"
+    out_path = "./tests/data/test_out.wav"
+    audio_segment = AudioSegment.from_file(path)
+    audio_segment.to_file(out_path)
+    assert os.path.exists(out_path)
+    os.remove(out_path)
 
 def test_n_samples():
     """
