@@ -91,5 +91,18 @@ def chop(
 #    conn.commit()
 #    conn.close()
 
+@app.command()
+def example():
+    """
+    Create an example collage using Amen Brother and Zimba Ku breakbeats.
+    """
+    collage(
+        target_file='./docs/audio/breaks/amen_brother.wav',
+        sample_file='./docs/audio/breaks/black_heat__zimba_ku.wav',
+        outpath='./collage.wav',
+        declick_fn='sigmoid',
+        declick_ms=20
+    )
+
 if __name__ == "__main__":
     app()
