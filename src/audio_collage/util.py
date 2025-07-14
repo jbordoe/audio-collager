@@ -1,5 +1,3 @@
-from dataclasses import dataclass
-
 import numpy as np
 from numpy.linalg import norm
 from dtw import accelerated_dtw as dtw
@@ -8,22 +6,13 @@ import librosa
 import soundfile as sf
 import math
 
+from .audio_file import AudioFile
+
 class Util:
-    @dataclass
-    class AudioFile:
-        timeseries: np.ndarray
-        sample_rate: int
-        offset_frames: int = None
-        mfcc: np.ndarray = None
-        chroma_stft: np.ndarray = None
-
-        def n_samples(self):
-            return len(self.timeseries)
-
     @staticmethod
     def read_audio(path):
         timeseries, sample_rate = librosa.load(path)
-        return Util.AudioFile(timeseries, sample_rate)
+        return AudioFile(timeseries, sample_rate, path=path)
 
     @staticmethod
     def save_audio(audiofile, path):
@@ -40,13 +29,11 @@ class Util:
         while pointer < timeseries.size:
             slice_ts = timeseries[pointer:(pointer+window_size_frames-1)]
             pointer += max(50, window_size_frames // 4)
-            slices.append(
-                Util.AudioFile(
-                    slice_ts,
-                    sample_rate,
-                    offset_frames=pointer
-                )
-            )
+            slices.append(AudioFile(
+                slice_ts,
+                sample_rate,
+                offset_frames=pointer
+            ))
         return slices
 
     @staticmethod
@@ -66,7 +53,7 @@ class Util:
                 x = np.concatenate([overlap, x[overlap_frames:]])
 
             output_data.extend(x)
-        output_audio = Util.AudioFile(output_data, sample_rate)
+        output_audio = AudioFile(np.array(output_data), sample_rate)
         return output_audio
 
     @staticmethod
@@ -84,7 +71,7 @@ class Util:
         fn = declick_functions[dc_type](frames, fade_frames)
         declicked = x * fn
 
-        return Util.AudioFile(declicked, sr, offset_frames=audiofile.offset_frames)
+        return AudioFile(declicked, sr, offset_frames=audiofile.offset_frames)
 
     def __declick_vector_linear(n_frames, fade_frames):
         return [

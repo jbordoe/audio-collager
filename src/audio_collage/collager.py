@@ -2,6 +2,7 @@ from rich.progress import Progress, track
 
 import vptree
 
+from .audio_file import AudioFile
 from .util import Util
 
 class Collager:
@@ -45,7 +46,7 @@ class Collager:
                 best_snippet_window = None
                 for window in windows:
                     window_size_frames = int((window / 1000) * target_sr)
-                    target_chunk = Util.AudioFile(
+                    target_chunk = AudioFile(
                             self.target.timeseries[pointer:pointer + window_size_frames - 1],
                             target_sr,
                             )
