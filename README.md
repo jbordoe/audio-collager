@@ -18,7 +18,7 @@ poetry install
 ```
 
 ## Run
-`puython collager.py COMMAND`
+`poetry run audio-collage COMMAND [OPTIONS]`
 
 Run `poetry run audio-collage --help` for more details.
 
@@ -47,3 +47,9 @@ We want to recreate the drum pattern of the former using audio from the latter.
 poetry run audio-collage collage -t docs/audio/breaks/amen_brother.wav -s docs/audio/breaks/black_heat__zimba_ku.wav -o docs/audio/breaks/out/amen_zimba.wav
 ```
 You can listen to the output [here](docs/audio/breaks/out/amen_zimba.wav)
+
+You can quickly run this example locally using:
+
+```bash
+poetry run audio-collage example
+```
