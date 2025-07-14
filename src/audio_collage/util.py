@@ -16,7 +16,7 @@ class Util:
         window_size_frames = int((window_size_ms / 1000) * sample_rate)
         slices = []
         while pointer < timeseries.size:
-            slice_ts = timeseries[pointer:(pointer+window_size_frames-1)]
+            slice_ts = timeseries[pointer:(pointer+window_size_frames)]
             pointer += max(50, window_size_frames // 4)
             slices.append(AudioSegment(
                 slice_ts,
@@ -65,8 +65,9 @@ class Util:
             'sigmoid': Util.__declick_vector_sigmoid,
             'linear':  Util.__declick_vector_linear,
         }
-        fn = declick_functions[dc_type](frames, fade_frames)
-        declicked = x * fn
+        vector = declick_functions[dc_type](frames, fade_frames)
+        print([x * 2 for x in vector])
+        declicked = x * vector
 
         return AudioSegment(declicked, sr, offset_frames=audiofile.offset_frames)
 
@@ -74,16 +75,17 @@ class Util:
         return [
             min(
                 min(i/fade_frames, 1),
-                min((n_frames-i)/fade_frames, 1)
+                min((n_frames-(i+1))/fade_frames, 1)
             )
             for i in np.arange(0, n_frames, 1)
         ]
+
    
     def __declick_vector_sigmoid(n_frames: int, fade_frames: int):
         return [
             min(
                 1/(1+math.exp((0.5-(i/fade_frames))*15)),
-                1/(1+math.exp((0.5-((n_frames-i)/fade_frames))*15))
+                1/(1+math.exp((0.5-((n_frames-(i+1))/fade_frames))*15))
             )
             for i in np.arange(0, n_frames, 1)
         ]
