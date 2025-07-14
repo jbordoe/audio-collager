@@ -98,6 +98,7 @@ class Util:
                 sr=audiofile.sample_rate,
                 n_fft = min(2048, len(audiofile.timeseries))
         )
+        audiofile.mfcc_mean = np.mean(audiofile.mfcc, axis=1)
 #        audiofile.chroma_stft = librosa.feature.chroma_stft(
 #                y=audiofile.timeseries,
 #                sr=audiofile.sample_rate,
@@ -107,6 +108,25 @@ class Util:
     @staticmethod
     def mfcc_dist(a1, a2):
         return Util.dist(a1.mfcc, a2.mfcc)
+
+    @staticmethod
+    def fast_mfcc_dist(a1, a2):
+        mfcc1 = a1.mfcc
+        mfcc2 = a2.mfcc
+        # Pad the mfccs to the same length
+        len1, len2 = mfcc1.shape[1], mfcc2.shape[1]
+        if len1 > len2:
+            padding = np.zeros((mfcc1.shape[0], len1 - len2))
+            mfcc2 = np.hstack((mfcc2, padding))
+        elif len2 > len1:
+            padding = np.zeros((mfcc2.shape[0], len2 - len1))
+            mfcc1 = np.hstack((mfcc1, padding))
+
+        return norm(mfcc1 - mfcc2)
+
+    @staticmethod
+    def mean_mfcc_dist(a1, a2):
+        return norm(a1.mfcc_mean - a2.mfcc_mean)
 
     @staticmethod
     def chroma_dist(a1, a2):

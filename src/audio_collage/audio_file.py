@@ -8,6 +8,7 @@ class AudioFile:
     sample_rate: int
     offset_frames: int = None
     mfcc: np.ndarray = None
+    mfcc_mean: np.ndarray = None
     chroma_stft: np.ndarray = None
     path: str = None
 
