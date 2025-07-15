@@ -32,22 +32,20 @@ class Collager:
         else:
             declick_ms = 0
 
-        sample_audio = AudioSegment.from_file(sample_file)
-        target_audio = AudioSegment.from_file(target_file)
-
-        windows = [500, 200, 100, 50]
-        windows = [i + declick_ms for i in windows]
-
         dist_fn_map: Dict[str, Callable[[AudioSegment, AudioSegment], float]] = {
             'mfcc': AudioDist.mfcc_dist,
             'fast_mfcc': AudioDist.fast_mfcc_dist,
             'mean_mfcc': AudioDist.mean_mfcc_dist,
         }
-
         selected_distance_fn = dist_fn_map.get(distance_fn.value)
         if not selected_distance_fn:
-            print(f'[yellow]Invalid distance function [yellow bold]{distance_fn}[yellow]!')
-            raise typer.Exit(code=1)
+            raise ValueError(f'Invalid distance function: {distance_fn}')
+
+        sample_audio = AudioSegment.from_file(sample_file)
+        target_audio = AudioSegment.from_file(target_file)
+
+        windows = [500, 200, 100, 50]
+        windows = [i + declick_ms for i in windows]
 
         mapper = AudioMapper(sample_audio, target_audio, distance_fn=selected_distance_fn)
         selected_snippets = mapper.map_audio(
