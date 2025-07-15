@@ -2,7 +2,6 @@ from audio_collage.search.index_collection import SearchIndexCollection
 from audio_collage.audio_dist import AudioDist
 from audio_collage.audio_segment import AudioSegment
 from audio_collage.search.index import SearchIndex
-from audio_collage.util import Util
 
 import numpy as np
 from typing import Tuple
@@ -43,7 +42,6 @@ def test_find_best_match(mocker):
     Test that the best match is found from the corresponding index.
     """
     mocker.patch.object(SearchIndex, 'build')
-    mocker.patch.object(Util, 'extract_features')
     mocked_search = mocker.patch.object(SearchIndex, 'search', side_effect=mock_search_index)
     
     index_collection = SearchIndexCollection(AudioDist.mfcc_dist)

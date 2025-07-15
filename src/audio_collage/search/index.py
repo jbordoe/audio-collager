@@ -29,9 +29,6 @@ class SearchIndex:
         if self._load_from_cache(hash):
             return
 
-        for segment in audio_segments:
-            Util.extract_features(segment)
-
         self.tree = VPTree(audio_segments, self.distance_fn)
         self._save_to_cache(hash)
 

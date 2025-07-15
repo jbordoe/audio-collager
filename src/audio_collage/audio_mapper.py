@@ -27,7 +27,6 @@ class AudioMapper:
         self._chop(windows)
         selected_snippets: List[AudioSegment] = []
 
-        Util.extract_features(self.target)
         target_sr = self.target.sample_rate
 
         pointer: int = 0
@@ -46,7 +45,6 @@ class AudioMapper:
                             self.target.timeseries[pointer:pointer + window_size_frames - 1],
                             target_sr,
                             )
-                    Util.extract_features(target_chunk)
 
                     nearest_dist, nearest = self._search(target_chunk, window)
                     if nearest_dist < best_snippet_dist:
@@ -75,7 +73,6 @@ class AudioMapper:
                 sample_group: List[AudioSegment] = Util.chop_audio(self.source, window)
 
                 for s in sample_group:
-                    Util.extract_features(s)
                     progress.update(task, advance=int((window / 1000) * self.source.sample_rate))
 
                 self._index(sample_group, window, hash)

@@ -16,11 +16,6 @@ def list_files(directory):
     onlyfiles = [f for f in listdir(directory) if isfile(join(directory, f)) and re.match(r'.*\.wav$',f)]
     return map(lambda f: join(directory, f), onlyfiles)
 
-def extract_features(path):
-    y, sr = librosa.load(path)
-    mfcc = librosa.feature.mfcc(y,sr) #Computing MFCC values
-    return [path, mfcc]
-
 def main(
     target_dir: str = typer.Option(..., "--target-dir", "-t", help="Path of directory containing target snippets."),
     sample_dir: str = typer.Option(..., "--sample-dir", "-s", help="Path of directory containing sample snippets."),
@@ -34,8 +29,6 @@ def main(
     sample_files = list_files(sample_dir)
     target_files = list(list_files(target_dir))
     target_files.sort()
-
-    sample_files = [extract_features(path) for path in sample_files]
 
     selected_snippets = []
 

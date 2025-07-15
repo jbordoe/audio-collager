@@ -59,10 +59,6 @@ class SearchIndexCollection:
                 query_segment.timeseries[:window_size_frames],
                 target_sr,
             )
-            # Extract features from the target chunk
-            from ..util import Util # Local import to avoid circular dependency issues
-            Util.extract_features(target_chunk)
-
             dist, snippet = index.search(target_chunk)
 
             if dist < best_overall_dist:

@@ -1,7 +1,6 @@
 from audio_collage.search.index import SearchIndex
 from audio_collage.audio_dist import AudioDist
 from audio_collage.audio_segment import AudioSegment
-from audio_collage.util import Util
 
 import numpy as np
 import pytest
@@ -162,7 +161,6 @@ def test_search(mocker):
     index.build(segments)
 
     query_segment = AudioSegment(timeseries=np.arange(0, 1000, dtype=float), sample_rate=1000)
-    Util.extract_features(query_segment)
 
     nearest_dist, nearest = index.search(query_segment)
 

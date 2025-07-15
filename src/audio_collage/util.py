@@ -66,7 +66,6 @@ class Util:
             'linear':  Util.__declick_vector_linear,
         }
         vector = declick_functions[dc_type](frames, fade_frames)
-        print([x * 2 for x in vector])
         declicked = x * vector
 
         return AudioSegment(declicked, sr, offset_frames=audio_segment.offset_frames)
@@ -89,18 +88,4 @@ class Util:
             )
             for i in np.arange(0, n_frames, 1)
         ]
-   
-    @staticmethod
-    def extract_features(audio_segment: AudioSegment):
-        audio_segment.mfcc = librosa.feature.mfcc(
-                y=audio_segment.timeseries,
-                sr=audio_segment.sample_rate,
-                n_fft = min(2048, len(audio_segment.timeseries))
-        )
-        audio_segment.mfcc_mean = np.mean(audio_segment.mfcc, axis=1)
-#        audio_segment.chroma_stft = librosa.feature.chroma_stft(
-#                y=audio_segment.timeseries,
-#                sr=audio_segment.sample_rate,
-#                n_fft = min(2048, len(audio_segment.timeseries))
-#        )
 

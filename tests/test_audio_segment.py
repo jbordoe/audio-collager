@@ -1,5 +1,6 @@
 import numpy as np
 import os
+from unittest.mock import patch
 
 from audio_collage.audio_segment import AudioSegment
 
@@ -20,9 +21,6 @@ def test_audio_segment_creation():
     assert np.array_equal(audio_segment.timeseries, timeseries)
     assert audio_segment.sample_rate == sample_rate
     assert audio_segment.path == path
-    assert audio_segment.offset_frames is None
-    assert audio_segment.mfcc is None
-    assert audio_segment.chroma_stft is None
 
 def test_from_file():
     """
@@ -77,3 +75,54 @@ def test_hash():
     assert audio_segment_a.hash() != audio_segment_b.hash()
     assert audio_segment_a.hash() != audio_segment_c.hash()
     assert audio_segment_b.hash() != audio_segment_c.hash()
+
+def test_mfcc_lazy_loading(mocker):
+    """
+    Tests that the MFCC features are computed lazily and cached.
+    """
+    mock_mfcc_computation = mocker.patch('librosa.feature.mfcc', return_value=np.array([[1,2],[3,4]]))
+    segment = AudioSegment(timeseries=np.random.rand(1000), sample_rate=44100)
+
+    assert segment._mfcc is None
+
+    mfcc1 = segment.mfcc
+    mfcc2 = segment.mfcc
+
+    assert mfcc1 is not None
+    assert mfcc2 is not None
+    mock_mfcc_computation.assert_called_once()
+
+def test_mfcc_mean_lazy_loading(mocker):
+    """
+    Tests that the mean of MFCCs is computed lazily and cached.
+    """
+    mocker.patch(
+        'audio_collage.audio_segment.AudioSegment.mfcc',
+        new_callable=mocker.PropertyMock,
+        return_value=np.array([[1., 2., 3.], [4., 5., 6.]])
+    )
+    segment = AudioSegment(timeseries=np.random.rand(1000), sample_rate=44100)
+
+    assert segment._mfcc_mean is None
+
+    mean1 = segment.mfcc_mean
+    mean2 = segment.mfcc_mean
+
+    assert np.array_equal(mean1, np.array([2., 5.]))
+    assert mean1 is mean2
+
+def test_chroma_stft_lazy_loading(mocker):
+    """
+    Tests that the chroma_stft features are computed lazily and cached.
+    """
+    mock_chroma_stft_computation = mocker.patch('librosa.feature.chroma_stft', return_value=np.array([[1,2],[3,4]]))
+    segment = AudioSegment(timeseries=np.random.rand(1000), sample_rate=44100)
+
+    assert segment._chroma_stft is None
+
+    chroma_stft1 = segment.chroma_stft
+    chroma_stft2 = segment.chroma_stft
+
+    assert chroma_stft1 is not None
+    assert chroma_stft2 is not None
+    mock_chroma_stft_computation.assert_called_once()

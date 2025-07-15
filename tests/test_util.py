@@ -55,19 +55,3 @@ def test_sigmoid_declick():
     expected_timeseries = np.array([0.001, 0.046, 1.0, 1.954, 1.999, 1.999, 1.954, 1.0, 0.045, 0.001])
     # assert result is close to expected
     assert np.allclose(declicked.timeseries, expected_timeseries, atol=0.1)
-
-def test_extract_features():
-    """
-    Test extracting features from an audio segment
-    """
-    audio_segment = AudioSegment(
-        np.arange(100, dtype=float),
-        sample_rate=100
-    )
-    assert audio_segment.mfcc is None
-    assert audio_segment.mfcc_mean is None
-
-    Util.extract_features(audio_segment)
-
-    assert isinstance(audio_segment.mfcc, np.ndarray)
-    assert isinstance(audio_segment.mfcc_mean, np.ndarray)
