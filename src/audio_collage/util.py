@@ -8,10 +8,10 @@ from .audio_segment import AudioSegment
 
 class Util:
     @staticmethod
-    def chop_audio(audiofile: AudioSegment, window_size_ms: int):
+    def chop_audio(audio_segment: AudioSegment, window_size_ms: int):
         pointer = 0
-        timeseries = audiofile.timeseries
-        sample_rate = audiofile.sample_rate
+        timeseries = audio_segment.timeseries
+        sample_rate = audio_segment.sample_rate
 
         window_size_frames = int((window_size_ms / 1000) * sample_rate)
         slices = []
@@ -51,12 +51,12 @@ class Util:
 
     @staticmethod
     def declick(
-        audiofile: AudioSegment,
+        audio_segment: AudioSegment,
         dc_type: str,
         fade_ms: int
     ):
-        x = audiofile.timeseries
-        sr = audiofile.sample_rate
+        x = audio_segment.timeseries
+        sr = audio_segment.sample_rate
 
         fade_frames = (sr * fade_ms) / 1000
         frames = x.size
@@ -69,7 +69,7 @@ class Util:
         print([x * 2 for x in vector])
         declicked = x * vector
 
-        return AudioSegment(declicked, sr, offset_frames=audiofile.offset_frames)
+        return AudioSegment(declicked, sr, offset_frames=audio_segment.offset_frames)
 
     def __declick_vector_linear(n_frames: int, fade_frames: int):
         return [
@@ -91,16 +91,16 @@ class Util:
         ]
    
     @staticmethod
-    def extract_features(audiofile: AudioSegment):
-        audiofile.mfcc = librosa.feature.mfcc(
-                y=audiofile.timeseries,
-                sr=audiofile.sample_rate,
-                n_fft = min(2048, len(audiofile.timeseries))
+    def extract_features(audio_segment: AudioSegment):
+        audio_segment.mfcc = librosa.feature.mfcc(
+                y=audio_segment.timeseries,
+                sr=audio_segment.sample_rate,
+                n_fft = min(2048, len(audio_segment.timeseries))
         )
-        audiofile.mfcc_mean = np.mean(audiofile.mfcc, axis=1)
-#        audiofile.chroma_stft = librosa.feature.chroma_stft(
-#                y=audiofile.timeseries,
-#                sr=audiofile.sample_rate,
-#                n_fft = min(2048, len(audiofile.timeseries))
+        audio_segment.mfcc_mean = np.mean(audio_segment.mfcc, axis=1)
+#        audio_segment.chroma_stft = librosa.feature.chroma_stft(
+#                y=audio_segment.timeseries,
+#                sr=audio_segment.sample_rate,
+#                n_fft = min(2048, len(audio_segment.timeseries))
 #        )
 
