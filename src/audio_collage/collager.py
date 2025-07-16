@@ -48,11 +48,11 @@ class Collager:
             windows=windows,
             overlap_ms=declick_ms,
         )
-
         output_audio = Util.concatenate_audio(
             track(selected_snippets, description="[cyan]Concatenating samples..."),
             declick_fn=declick_fn,
-            declick_ms=declick_ms
+            declick_ms=declick_ms,
+            sample_rate=sample_audio.sample_rate
         )
 
         return output_audio

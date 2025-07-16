@@ -1,6 +1,5 @@
 import numpy as np
 
-import math
 from typing import List
 
 from .audio_segment import AudioSegment
@@ -28,63 +27,100 @@ class Util:
     def concatenate_audio(
         audio_list: List[AudioSegment],
         declick_fn: str = None,
-        declick_ms: int = 0
+        declick_ms: int = 0,
+        sample_rate: int = 44100
     ):
-        output_data = []
-        sample_rate = None
+        if not audio_list:
+            return AudioSegment(np.array([]), sample_rate=sample_rate)
+
+        output_timeseries = np.array([])
+
         for i, snippet in enumerate(audio_list):
-            if declick_fn:
-                snippet = Util.declick(snippet, declick_fn, declick_ms)
+            if snippet.sample_rate != sample_rate:
+                # TODO: maybe we can resample the snippets to the same sample rate?
+                raise ValueError("All audio segments must have the same sample rate")
 
-            x = snippet.timeseries
-            if declick_ms and output_data and i < len(list(audio_list))-1:
+            snippet_ts = snippet.timeseries
+
+            if declick_ms and len(output_timeseries):
                 overlap_frames = int((declick_ms * snippet.sample_rate) / 1000)
-                overlap = np.add(output_data[-overlap_frames:], x[:overlap_frames])
-                output_data = output_data[:-overlap_frames]
-                sample_rate = snippet.sample_rate if not sample_rate else sample_rate
-                x = np.concatenate([overlap, x[overlap_frames:]])
+                # Apply fade out to the end of the previous snippet
+                output_timeseries = Util.declick_out(
+                    output_timeseries,
+                    n_frames=overlap_frames,
+                    declick_type=declick_fn
+                )
+                # Apply fade in to the start of the current snippet
+                snippet_ts = Util.declick_in(
+                    snippet_ts,
+                    n_frames=overlap_frames,
+                    declick_type=declick_fn
+                )
+                # mix start of current snippet with end of the previous
+                output_timeseries[-overlap_frames:] += snippet_ts[:overlap_frames]
+                # Concatenate the rest of the snippet
+                output_timeseries = np.concatenate(
+                    [output_timeseries, snippet_ts[overlap_frames:]]
+                )
+            else:
+                 output_timeseries = np.concatenate([output_timeseries, snippet_ts])
 
-            output_data.extend(x)
-        output_audio = AudioSegment(np.array(output_data), sample_rate)
-        return output_audio
+        return AudioSegment(output_timeseries, sample_rate)
 
     @staticmethod
-    def declick(
-        audio_segment: AudioSegment,
-        dc_type: str,
-        fade_ms: int
+    def declick_in(
+        timeseries: np.ndarray,
+        n_frames: int,
+        declick_type: str,
+        in_place = False
     ):
-        x = audio_segment.timeseries
-        sr = audio_segment.sample_rate
+        if declick_type == 'linear':
+            vector = Util.__declick_in_vector_linear(n_frames)
+        elif declick_type == 'sigmoid':
+            vector = Util.__declick_in_vector_sigmoid(n_frames)
+        else:
+            raise ValueError(f'Invalid declick type: {declick_type}')
 
-        fade_frames = (sr * fade_ms) / 1000
-        frames = x.size
+        if not in_place:
+            declicked = np.copy(timeseries)
+        else:
+            declicked = timeseries
 
-        declick_functions = {
-            'sigmoid': Util.__declick_vector_sigmoid,
-            'linear':  Util.__declick_vector_linear,
-        }
-        vector = declick_functions[dc_type](frames, fade_frames)
-        declicked = x * vector
+        declicked[:n_frames] *= vector
+        return declicked
 
-        return AudioSegment(declicked, sr, offset_frames=audio_segment.offset_frames)
+    @staticmethod
+    def declick_out(
+        timeseries: np.ndarray,
+        n_frames: int,
+        declick_type: str,
+        in_place = False
+    ):
+        if declick_type == 'linear':
+            vector = Util.__declick_out_vector_linear(n_frames)
+        elif declick_type == 'sigmoid':
+            vector = Util.__declick_out_vector_sigmoid(n_frames)
+        else:
+            raise ValueError(f'Invalid declick type: {declick_type}')
+        
+        if not in_place:
+            declicked = np.copy(timeseries)
+        else:
+            declicked = timeseries
 
-    def __declick_vector_linear(n_frames: int, fade_frames: int):
-        return [
-            min(
-                min(i/fade_frames, 1),
-                min((n_frames-(i+1))/fade_frames, 1)
-            )
-            for i in np.arange(0, n_frames, 1)
-        ]
+        declicked[-n_frames:] *= vector
+        return declicked
 
-   
-    def __declick_vector_sigmoid(n_frames: int, fade_frames: int):
-        return [
-            min(
-                1/(1+math.exp((0.5-(i/fade_frames))*15)),
-                1/(1+math.exp((0.5-((n_frames-(i+1))/fade_frames))*15))
-            )
-            for i in np.arange(0, n_frames, 1)
-        ]
+    def __declick_in_vector_linear(n_frames: int):
+        return np.linspace(0., 1., n_frames)
 
+    def __declick_out_vector_linear(n_frames: int):
+        return np.linspace(1., 0., n_frames)
+
+    def __declick_in_vector_sigmoid(n_frames: int):
+        lin = np.linspace(0., 1., n_frames)
+        steepness = 15
+        return 1 / (1 + np.exp((0.5-lin) * steepness))
+
+    def __declick_out_vector_sigmoid(n_frames: int):
+        return np.flip(Util.__declick_in_vector_sigmoid(n_frames))

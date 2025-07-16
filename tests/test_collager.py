@@ -9,11 +9,11 @@ def test_create_collage_success(mock_audio_mapper, mock_concatenate_audio):
     """
     Test that a collage is created successfully
     """
-    target_audio = MagicMock(spec=AudioSegment)
-    sample_audio = MagicMock(spec=AudioSegment)
+    target_audio = MagicMock(spec=AudioSegment, sample_rate=44100)
+    sample_audio = MagicMock(spec=AudioSegment, sample_rate=44100)
     
     mock_audio_mapper.return_value.map_audio.return_value = [MagicMock(), MagicMock()]
-    mock_concatenate_audio.return_value = MagicMock(spec=AudioSegment)
+    mock_concatenate_audio.return_value = MagicMock(spec=AudioSegment,)
 
     declick_fn = Collager.DeclickFn.sigmoid
     declick_ms = 20
@@ -38,8 +38,8 @@ def test_create_collage_no_declick(mock_audio_mapper, mock_concatenate_audio):
     """
     Test that a collage is created successfully with no declicking
     """
-    target_audio = MagicMock(spec=AudioSegment)
-    sample_audio = MagicMock(spec=AudioSegment)
+    target_audio = MagicMock(spec=AudioSegment, sample_rate=44100)
+    sample_audio = MagicMock(spec=AudioSegment, sample_rate=44100)
     
     mock_audio_mapper.return_value.map_audio.return_value = [MagicMock(), MagicMock()]
     mock_concatenate_audio.return_value = MagicMock(spec=AudioSegment)
