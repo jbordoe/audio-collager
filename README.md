@@ -4,6 +4,9 @@
 
 Attempt to reconstruct target audio using snippets of source audio.
 
+[![CI Status](https://github.com/jbordoe/audio-collager/actions/workflows/ci.yml/badge.svg)](https://github.com/jbordoe/audio-collager/actions/workflows/ci.yml) [![Code Coverage](https://coveralls.io/repos/github/jbordoe/audio-collager/badge.svg)](https://coveralls.io/github/jbordoe/audio-collager)
+
+
 ## Background
 
 This tool is inspired by the Scott Johnson album *[John Somebody](https://scottjohnsoncomposer.com/compositions/johnsomebody.html)* ([this track](https://scottjohnsoncomposer.com/compositions/audioclips/InvoluntarySong.ogg) in particular) in which samples of speech and laughter are cut up, rearranged and looped to create rhythm and melody.
