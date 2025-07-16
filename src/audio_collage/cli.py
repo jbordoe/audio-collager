@@ -72,11 +72,11 @@ def example():
     Create an example collage using Amen Brother and Zimba Ku breakbeats.
     """
     workflow.create_collage_from_files(
-        target_file='./docs/audio/breaks/amen_brother.wav',
-        sample_file='./docs/audio/breaks/black_heat__zimba_ku.wav',
+        sample_file='./docs/audio/breaks/amen_brother.wav',
+        target_file='./docs/audio/breaks/black_heat__zimba_ku.wav',
         outpath='./collage.wav',
         declick_fn=DeclickFn.sigmoid,
-        declick_ms=20,
+        declick_ms=15,
         distance_fn=DistanceFn.fast_mfcc
     )
 

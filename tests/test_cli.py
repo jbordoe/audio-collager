@@ -79,10 +79,10 @@ def test_example_command(mock_create_collage_from_files):
     from audio_collage.collager import Collager
 
     mock_create_collage_from_files.assert_called_once_with(
-        target_file='./docs/audio/breaks/amen_brother.wav',
-        sample_file='./docs/audio/breaks/black_heat__zimba_ku.wav',
+        sample_file='./docs/audio/breaks/amen_brother.wav',
+        target_file='./docs/audio/breaks/black_heat__zimba_ku.wav',
         outpath='./collage.wav',
         declick_fn=Collager.DeclickFn.sigmoid,
-        declick_ms=20,
+        declick_ms=15,
         distance_fn=Collager.DistanceFn.fast_mfcc
     )
