@@ -4,10 +4,10 @@ from audio_collage.cli import app
 
 runner = CliRunner()
 
-@patch('audio_collage.cli.Collager.create_collage')
-def test_collage_command(mock_create_collage):
+@patch('audio_collage.cli.workflow.create_collage_from_files')
+def test_collage_command(mock_create_collage_from_files):
     """
-    Test that the collage command calls Collager.create_collage with the correct arguments.
+    Test that collage command invokes workflow with the correct arguments.
     """
     target_file = "target.wav"
     sample_file = "sample.wav"
@@ -27,16 +27,15 @@ def test_collage_command(mock_create_collage):
     ])
 
     assert result.exit_code == 0
-    mock_create_collage.assert_called_once()
-    
+
     from audio_collage.collager import Collager
     expected_declick_fn = Collager.DeclickFn[declick_fn]
     expected_distance_fn = Collager.DistanceFn[distance_fn]
 
-    mock_create_collage.return_value.to_file.assert_called_once_with(outpath)
-    mock_create_collage.assert_called_once_with(
+    mock_create_collage_from_files.assert_called_once_with(
         target_file=target_file,
         sample_file=sample_file,
+        outpath=outpath,
         declick_fn=expected_declick_fn,
         declick_ms=int(declick_ms),
         distance_fn=expected_distance_fn
@@ -53,7 +52,7 @@ def test_chop_command(mock_chop_audio, mock_from_file):
     outdir = "output_dir"
 
     mock_slices = [MagicMock(), MagicMock()]
-    mock_chop_audio.return_value = mock_slices 
+    mock_chop_audio.return_value = mock_slices
 
     result = runner.invoke(app, [
         "chop",
@@ -65,17 +64,25 @@ def test_chop_command(mock_chop_audio, mock_from_file):
     assert result.exit_code == 0
     mock_from_file.assert_called_once_with(input_filepath)
     mock_chop_audio.assert_called_once_with(mock_from_file.return_value, chop_length)
-    for i, slice in enumerate(mock_slices):
-        slice.to_file.assert_called_once_with(f"{outdir}/{i:04}.wav")
+    for i, mock_slice in enumerate(mock_slices):
+        mock_slice.to_file.assert_called_once_with(f"{outdir}/{i:04}.wav")
 
-
-@patch('audio_collage.cli.Collager.create_collage')
-def test_example_command(mock_create_collage):
+@patch('audio_collage.cli.workflow.create_collage_from_files')
+def test_example_command(mock_create_collage_from_files):
     """
-    Test that example command calls Collager.create_collage with correct arguments.
+    Test that the example command invokes workflow with the correct arguments.
     """
     result = runner.invoke(app, ["example"])
 
     assert result.exit_code == 0
-    mock_create_collage.assert_called_once()
-    mock_create_collage.return_value.to_file.assert_called_once_with("./collage.wav")
+
+    from audio_collage.collager import Collager
+
+    mock_create_collage_from_files.assert_called_once_with(
+        target_file='./docs/audio/breaks/amen_brother.wav',
+        sample_file='./docs/audio/breaks/black_heat__zimba_ku.wav',
+        outpath='./collage.wav',
+        declick_fn=Collager.DeclickFn.sigmoid,
+        declick_ms=20,
+        distance_fn=Collager.DistanceFn.fast_mfcc
+    )

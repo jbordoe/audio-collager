@@ -3,9 +3,9 @@ from .audio_dist import AudioDist
 from .audio_mapper import AudioMapper
 from .audio_segment import AudioSegment
 
-from rich import print
-from rich.progress import Progress, SpinnerColumn, TextColumn, track
+from rich.progress import track
 from strenum import StrEnum
+from typing import Dict, Callable
 
 class Collager:
     DeclickFn = StrEnum('Declickfn', {k: k for k in ['sigmoid', 'linear']})
@@ -13,14 +13,14 @@ class Collager:
 
     @staticmethod
     def create_collage(
-        target_file: str,
-        sample_file: str,
+        target_audio: AudioSegment,
+        sample_audio: AudioSegment,
         declick_fn: DeclickFn,
         declick_ms: int,
         distance_fn: DistanceFn
     ) -> AudioSegment:
         """
-        This is the core logic for creating a collage.
+        This is the core logic for creating a collage. It's a pure function.
         """
         default_dc_ms = {
             'sigmoid': 20,
@@ -40,9 +40,6 @@ class Collager:
         if not selected_distance_fn:
             raise ValueError(f'Invalid distance function: {distance_fn}')
 
-        sample_audio = AudioSegment.from_file(sample_file)
-        target_audio = AudioSegment.from_file(target_file)
-
         windows = [500, 200, 100, 50]
         windows = [i + declick_ms for i in windows]
 
@@ -59,3 +56,4 @@ class Collager:
         )
 
         return output_audio
+
