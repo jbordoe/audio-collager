@@ -1,6 +1,5 @@
 #!/usr/bin/python
 
-import sys
 import typer
 
 from os import listdir
@@ -24,8 +23,6 @@ def main(
     """
     Create a collage based on a pre-chopped audio file using snippets
     """
-    tmp_dir = './tmp'
-
     sample_files = list_files(sample_dir)
     target_files = list(list_files(target_dir))
     target_files.sort()

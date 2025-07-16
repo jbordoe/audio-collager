@@ -1,6 +1,5 @@
 import numpy as np
 import os
-from unittest.mock import patch
 
 from audio_collage.audio_segment import AudioSegment
 

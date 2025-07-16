@@ -4,7 +4,6 @@ from audio_collage.audio_segment import AudioSegment
 
 import numpy as np
 import pytest
-from typing import Tuple
 from vptree import VPTree
 
 def test_init():

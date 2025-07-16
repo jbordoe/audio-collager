@@ -42,7 +42,7 @@ def test_find_best_match(mocker):
     Test that the best match is found from the corresponding index.
     """
     mocker.patch.object(SearchIndex, 'build')
-    mocked_search = mocker.patch.object(SearchIndex, 'search', side_effect=mock_search_index)
+    mocker.patch.object(SearchIndex, 'search', side_effect=mock_search_index)
     
     index_collection = SearchIndexCollection(AudioDist.mfcc_dist)
     for window in [1, 2, 3]:

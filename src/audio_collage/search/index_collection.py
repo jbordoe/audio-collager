@@ -1,5 +1,4 @@
 from typing import Dict, List, Callable, Tuple
-from rich.progress import Progress
 import numpy as np
 
 from ..audio_segment import AudioSegment

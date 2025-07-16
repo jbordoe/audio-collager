@@ -1,5 +1,4 @@
 import numpy as np
-import os
 from unittest.mock import MagicMock
 
 from audio_collage.audio_dist import AudioDist

@@ -3,10 +3,8 @@ import os
 import pickle
 from typing import List, Tuple, Callable
 from vptree import VPTree
-from rich.progress import Progress
 
 from ..audio_segment import AudioSegment
-from ..util import Util
 
 CACHE_DIR = '.cache'
 
