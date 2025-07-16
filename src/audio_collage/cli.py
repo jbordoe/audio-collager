@@ -42,14 +42,17 @@ def collage(
     Create a collage based on a given audio file using snippets from another.
     This is a thin wrapper around the create_collage function.
     """
-    Collager.create_collage(
+    output_audio = Collager.create_collage(
         target_file=target_file,
         sample_file=sample_file,
-        outpath=outpath,
         declick_fn=declick_fn,
         declick_ms=declick_ms,
         distance_fn=distance_fn
     )
+    print(f'[cyan]Saving collage to [yellow]{outpath}[cyan]...')
+    output_audio.to_file(outpath)
+
+    print('[green bold]Done!')
 
 @app.command()
 def chop(
@@ -73,14 +76,18 @@ def example():
     """
     Create an example collage using Amen Brother and Zimba Ku breakbeats.
     """
-    Collager.create_collage(
+    output_audio = Collager.create_collage(
         target_file='./docs/audio/breaks/amen_brother.wav',
         sample_file='./docs/audio/breaks/black_heat__zimba_ku.wav',
-        outpath='./collage.wav',
         declick_fn=DeclickFn.sigmoid,
         declick_ms=20,
         distance_fn=DistanceFn.fast_mfcc
     )
+    outpath = "./collage.wav"
+    print(f'[cyan]Saving collage to [yellow]{outpath}[cyan]...')
+    output_audio.to_file(outpath)
+
+    print('[green bold]Done!')
 
 if __name__ == "__main__":
     app()

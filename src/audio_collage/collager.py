@@ -15,11 +15,10 @@ class Collager:
     def create_collage(
         target_file: str,
         sample_file: str,
-        outpath: str,
         declick_fn: DeclickFn,
         declick_ms: int,
         distance_fn: DistanceFn
-    ):
+    ) -> AudioSegment:
         """
         This is the core logic for creating a collage.
         """
@@ -59,7 +58,4 @@ class Collager:
             declick_ms=declick_ms
         )
 
-        print(f'[cyan]Saving collage to [yellow]{outpath}[cyan]...')
-        output_audio.to_file(outpath)
-
-        print('[green bold]Done!')
+        return output_audio
