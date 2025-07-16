@@ -41,7 +41,7 @@ class Collager:
         if not selected_distance_fn:
             raise ValueError(f'Invalid distance function: {distance_fn}')
 
-        windows = [500, 200, 100, 50]
+        windows = [800, 400, 200, 100, 50]
         windows = [i + declick_ms for i in windows]
 
         mapper = AudioMapper(sample_audio, target_audio, distance_fn=selected_distance_fn)
