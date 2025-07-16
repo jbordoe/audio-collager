@@ -9,7 +9,7 @@ from typing import Dict, Callable
 
 class Collager:
     DeclickFn = StrEnum('Declickfn', {k: k for k in ['sigmoid', 'linear']})
-    DistanceFn = StrEnum('DistanceFn', {k: k for k in ['mfcc', 'fast_mfcc', 'mean_mfcc']})
+    DistanceFn = StrEnum('DistanceFn', {k: k for k in ['mfcc', 'fast_mfcc', 'mean_mfcc', 'mfcc_cosine']})
 
     @staticmethod
     def create_collage(
@@ -35,6 +35,7 @@ class Collager:
             'mfcc': AudioDist.mfcc_dist,
             'fast_mfcc': AudioDist.fast_mfcc_dist,
             'mean_mfcc': AudioDist.mean_mfcc_dist,
+            'mfcc_cosine': AudioDist.mfcc_cosine_dist,
         }
         selected_distance_fn = dist_fn_map.get(distance_fn.value)
         if not selected_distance_fn:

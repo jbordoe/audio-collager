@@ -31,6 +31,7 @@ def collage(
         Options are:
         - mfcc (default): euclidean distance of mfccs. Slowest but more accurate.
         - fast_mfcc: euclidean distance of mfccs, with padding. Faster but less accurate.
+        - mfcc_cosine: cosine distance of mfccs.
         - mean_mfcc: distance of mean mfccs. Fastest but least accurate.
         """
     )

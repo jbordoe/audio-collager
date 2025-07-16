@@ -30,6 +30,20 @@ class AudioDist:
         return norm(a1.mfcc_mean - a2.mfcc_mean)
 
     @staticmethod
+    def mfcc_cosine_dist(a1: AudioSegment, a2: AudioSegment):
+        v1 = a1.mfcc.flatten()
+        v2 = a2.mfcc.flatten()
+
+        if len(v1) < len(v2):
+            v1 = np.hstack((v1, np.zeros(len(v2) - len(v1))))
+        elif len(v2) < len(v1):
+            v2 = np.hstack((v2, np.zeros(len(v1) - len(v2))))
+
+        # The cosine function from scipy computes the distance, not the similarity.
+        # The distance is 1 - similarity.
+        return 1 - np.dot(v1, v2) / (norm(v1) * norm(v2))
+
+    @staticmethod
     def chroma_dist(a1: AudioSegment, a2: AudioSegment):
         return AudioDist.dist(a1.chroma_stft, a2.chroma_stft)
 

@@ -123,6 +123,27 @@ def test_audio_dist():
     )
     assert AudioDist.audio_dist(d1, d2) == 3
 
+def test_mfcc_cosine_dist():
+    """
+    Tests that the mfcc_cosine_dist function returns the correct distance.
+    """
+    a1 = MagicMock(mfcc=np.array([[1, 2, 3]]))
+    a2 = MagicMock(mfcc=np.array([[1, 2, 3]]))
+    assert AudioDist.mfcc_cosine_dist(a1, a2) == 0
+
+    b1 = MagicMock(mfcc=np.array([[1, 2, 3]]))
+    b2 = MagicMock(mfcc=np.array([[1, 2, 4]]))
+    assert AudioDist.mfcc_cosine_dist(b1, b2) < 0.0086
+    assert AudioDist.mfcc_cosine_dist(b1, b2) > 0.0085
+
+    c1 = MagicMock(mfcc=np.array([[1, 2, 3]]))
+    c2 = MagicMock(mfcc=np.array([[1, 2, 3], [0, 0, 0]]))
+    assert AudioDist.mfcc_cosine_dist(c1, c2) == 0
+
+    d1 = MagicMock(mfcc=np.array([[1, 2, 3], [0, 0, 0]]))
+    d2 = MagicMock(mfcc=np.array([[1, 2, 3]]))
+    assert AudioDist.mfcc_cosine_dist(d1, d2) == 0
+
 def test_dist():
     """
     Tests that the dist function returns the correct distance.
