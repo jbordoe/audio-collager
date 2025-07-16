@@ -13,6 +13,7 @@ class AudioDist:
     def fast_mfcc_dist(a1: AudioSegment, a2: AudioSegment):
         mfcc1: np.ndarray = a1.mfcc
         mfcc2: np.ndarray = a2.mfcc
+
         # Pad the mfccs to the same length
         len1, len2 = mfcc1.shape[1], mfcc2.shape[1]
         if len1 > len2:

@@ -30,11 +30,11 @@ def test_fast_mfcc_dist():
     
     c1 = MagicMock(mfcc=np.array([[1, 2, 3, 4, 5]]))
     c2 = MagicMock(mfcc=np.array([[1, 2, 3, 4, 5, 0]]))
-    assert AudioDist.fast_mfcc_dist(a1, a2) == 0
+    assert AudioDist.fast_mfcc_dist(c1, c2) == 0
 
-    d1 = MagicMock(mfcc=np.array([[1, 2, 3, 4]]))
-    d2 = MagicMock(mfcc=np.array([[1, 2, 3, 4, 6]]))
-    assert AudioDist.fast_mfcc_dist(b1, b2) == 1
+    d1 = MagicMock(mfcc=np.array([[1, 2, 3, 4, 5]]))
+    d2 = MagicMock(mfcc=np.array([[1, 2, 3, 4]]))
+    assert AudioDist.fast_mfcc_dist(d1, d2) == 5
 
 def test_mean_mfcc_dist():
     """
