@@ -59,9 +59,10 @@ class SearchIndexCollection:
                 target_sr,
             )
             dist, snippet = index.search(target_chunk)
+            normalized_dist = dist / window_size_frames
 
-            if dist < best_overall_dist:
-                best_overall_dist = dist
+            if normalized_dist < best_overall_dist:
+                best_overall_dist = normalized_dist
                 best_overall_snippet = snippet
                 best_overall_window = window_size_frames
 
