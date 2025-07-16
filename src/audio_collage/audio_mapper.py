@@ -12,8 +12,8 @@ CACHE_DIR = '.cache'
 class AudioMapper:
     def __init__(
         self,
-        target_audio: AudioSegment,
         sample_audio: AudioSegment,
+        target_audio: AudioSegment,
         distance_fn: callable = AudioDist.mean_mfcc_dist
     ):
         self.source: AudioSegment = sample_audio
