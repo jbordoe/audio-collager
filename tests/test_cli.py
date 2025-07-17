@@ -1,6 +1,7 @@
 from typer.testing import CliRunner
 from unittest.mock import patch, MagicMock
 from audio_collage.cli import app
+from audio_collage.collager import CollagerConfig
 
 runner = CliRunner()
 
@@ -31,15 +32,14 @@ def test_collage_command(mock_create_collage_from_files, mock_collager_config):
 
     assert result.exit_code == 0
 
-    from audio_collage.collager import Collager
 
     mock_collager_config.assert_called_once_with(
         target_file=target_file,
         sample_file=sample_file,
         outpath=outpath,
-        declick_fn=Collager.DeclickFn[declick_fn],
+        declick_fn=CollagerConfig.DeclickFn[declick_fn],
         declick_ms=int(declick_ms),
-        distance_fn=Collager.DistanceFn[distance_fn],
+        distance_fn=CollagerConfig.DistanceFn[distance_fn],
         step_ms=None,
         step_factor=float(step_factor),
     )
@@ -92,14 +92,13 @@ def test_example_command(mock_create_collage_from_files, mock_config_init):
 
     assert result.exit_code == 0
 
-    from audio_collage.collager import Collager
     mock_config_init.assert_called_once_with(
         target_file='./docs/audio/breaks/amen_brother.wav',
         sample_file='./docs/audio/breaks/black_heat__zimba_ku.wav',
         outpath='./collage.wav',
-        declick_fn=Collager.DeclickFn.sigmoid,
+        declick_fn=CollagerConfig.DeclickFn.sigmoid,
         declick_ms=15,
-        distance_fn=Collager.DistanceFn.fast_mfcc,
+        distance_fn=CollagerConfig.DistanceFn.fast_mfcc,
         step_ms=None,
         step_factor=None
     )

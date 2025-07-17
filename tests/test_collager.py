@@ -2,6 +2,7 @@ import pytest
 from unittest.mock import MagicMock, patch, ANY
 from audio_collage.collager import Collager
 from audio_collage.audio_segment import AudioSegment
+from audio_collage.collager_config import CollagerConfig
 
 @patch('audio_collage.collager.Util.concatenate_audio')
 @patch('audio_collage.collager.AudioMapper')
@@ -15,28 +16,31 @@ def test_create_collage_success(mock_audio_mapper, mock_concatenate_audio):
     mock_audio_mapper.return_value.map_audio.return_value = [MagicMock(), MagicMock()]
     mock_concatenate_audio.return_value = MagicMock(spec=AudioSegment,)
 
-    declick_fn = Collager.DeclickFn.sigmoid
+    declick_fn = CollagerConfig.DeclickFn.sigmoid
     declick_ms = 20
-    distance_fn = Collager.DistanceFn.mfcc
+    distance_fn = CollagerConfig.DistanceFn.mfcc
     step_ms = 100
-    step_factor = 0.5
+    step_factor = None
+
+    config = CollagerConfig(
+        declick_fn=declick_fn,
+        declick_ms=declick_ms,
+        distance_fn=distance_fn,
+        step_ms=step_ms,
+        step_factor=step_factor
+    )
 
     result = Collager.create_collage(
         target_audio,
         sample_audio,
-        declick_fn,
-        declick_ms,
-        distance_fn,
-        step_ms=step_ms,
-        step_factor=step_factor
+        config
     )
 
     mock_audio_mapper.assert_called_once_with(
         sample_audio,
         target_audio, 
         distance_fn=ANY,
-        step_ms=step_ms,
-        step_factor=step_factor
+        config=config
     )
     mock_concatenate_audio.assert_called_once()
     assert isinstance(result, AudioSegment)
@@ -56,14 +60,18 @@ def test_create_collage_no_declick(mock_audio_mapper, mock_concatenate_audio):
 
     declick_fn = None
     declick_ms = 0
-    distance_fn = Collager.DistanceFn.mfcc
+    distance_fn = CollagerConfig.DistanceFn.mfcc
+
+    config = CollagerConfig(
+        declick_fn=declick_fn,
+        declick_ms=declick_ms,
+        distance_fn=distance_fn,
+    )
 
     Collager.create_collage(
         target_audio,
         sample_audio,
-        declick_fn,
-        declick_ms,
-        distance_fn
+        config
     )
 
     # Check that declick_ms is 0 when declick_fn is None
@@ -76,16 +84,20 @@ def test_create_collage_invalid_distance_fn():
     """
     target_audio = MagicMock(spec=AudioSegment)
     sample_audio = MagicMock(spec=AudioSegment)
-    declick_fn = Collager.DeclickFn.sigmoid
+    declick_fn = CollagerConfig.DeclickFn.sigmoid
     declick_ms = 20
     distance_fn = MagicMock()
     distance_fn.value = "invalid"
+
+    config = CollagerConfig(
+        declick_fn=declick_fn,
+        declick_ms=declick_ms,
+        distance_fn=distance_fn,
+    )
 
     with pytest.raises(ValueError):
         Collager.create_collage(
             target_audio,
             sample_audio,
-            declick_fn,
-            declick_ms,
-            distance_fn
+            config
         )

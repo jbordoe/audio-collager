@@ -2,28 +2,25 @@ from .util import Util
 from .audio_dist import AudioDist
 from .audio_mapper import AudioMapper
 from .audio_segment import AudioSegment
+from .collager_config import CollagerConfig
 
 from rich.progress import track
-from strenum import StrEnum
 from typing import Dict, Callable
 
 class Collager:
-    DeclickFn = StrEnum('Declickfn', {k: k for k in ['sigmoid', 'linear']})
-    DistanceFn = StrEnum('DistanceFn', {k: k for k in ['mfcc', 'fast_mfcc', 'mean_mfcc', 'mfcc_cosine']})
-
     @staticmethod
     def create_collage(
         target_audio: AudioSegment,
         sample_audio: AudioSegment,
-        declick_fn: DeclickFn,
-        declick_ms: int,
-        distance_fn: DistanceFn,
-        step_ms: int = None,
-        step_factor: float = None
+        config: CollagerConfig
     ) -> AudioSegment:
         """
         This is the core logic for creating a collage.
         """
+        declick_fn = config.declick_fn
+        declick_ms = config.declick_ms
+        distance_fn = config.distance_fn
+
         default_dc_ms = {
             'sigmoid': 20,
             'linear': 70,
@@ -43,21 +40,14 @@ class Collager:
         if not selected_distance_fn:
             raise ValueError(f'Invalid distance function: {distance_fn}')
 
-        windows = [800, 400, 200, 100, 50]
-        windows = [i + declick_ms for i in windows]
-
         mapper = AudioMapper(
             sample_audio,
             target_audio,
             distance_fn=selected_distance_fn,
-            step_ms=step_ms,
-            step_factor=step_factor
+            config=config
         )
 
-        selected_snippets = mapper.map_audio(
-            windows=windows,
-            overlap_ms=declick_ms
-        )
+        selected_snippets = mapper.map_audio()
 
         output_audio = Util.concatenate_audio(
             track(selected_snippets, description="[cyan]Concatenating samples..."),

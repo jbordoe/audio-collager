@@ -3,19 +3,16 @@
 import typer
 from rich.progress import track
 
-
 from .util import Util
 from .audio_segment import AudioSegment
-from .collager import Collager
 from .collager_config import CollagerConfig
 from . import workflow
 
+DeclickFn = CollagerConfig.DeclickFn
+DistanceFn = CollagerConfig.DistanceFn
 
-DeclickFn = Collager.DeclickFn
-DistanceFn = Collager.DistanceFn
 
 app = typer.Typer()
-
 
 @app.command()
 def collage(

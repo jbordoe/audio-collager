@@ -1,6 +1,5 @@
 from unittest.mock import patch, MagicMock
 from audio_collage.workflow import create_collage_from_files
-from audio_collage.collager import Collager
 from audio_collage.collager_config import CollagerConfig
 
 @patch('audio_collage.workflow.AudioSegment.from_file')
@@ -12,9 +11,9 @@ def test_create_collage_from_files(mock_create_collage, mock_from_file):
     target_file = "target.wav"
     sample_file = "sample.wav"
     outpath = "output.wav"
-    declick_fn = Collager.DeclickFn.sigmoid
+    declick_fn = CollagerConfig.DeclickFn.sigmoid
     declick_ms = 20
-    distance_fn = Collager.DistanceFn.mfcc
+    distance_fn = CollagerConfig.DistanceFn.mfcc
     step_factor = 0.2
 
     config = CollagerConfig(
@@ -40,10 +39,6 @@ def test_create_collage_from_files(mock_create_collage, mock_from_file):
     mock_create_collage.assert_called_once_with(
         target_audio=mock_audio_segment,
         sample_audio=mock_audio_segment,
-        declick_fn=config.declick_fn,
-        declick_ms=declick_ms,
-        distance_fn=distance_fn,
-        step_factor=step_factor,
-        step_ms=None
+        config=config
     )
     mock_output_audio.to_file.assert_called_once_with(outpath)

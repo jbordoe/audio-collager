@@ -1,6 +1,7 @@
 from audio_collage.audio_dist import AudioDist
 from audio_collage.audio_mapper import AudioMapper
 from audio_collage.audio_segment import AudioSegment
+from audio_collage.collager import CollagerConfig
 from audio_collage.search.index_collection import SearchIndexCollection
 from audio_collage.util import Util
 
@@ -26,20 +27,25 @@ def test_map_audio(mocker):
     mocker.patch.object(SearchIndexCollection, 'find_best_match', return_value=(111, 22, 3))
     chop_fn = mocker.spy(Util, 'chop_audio')
     
+    config = CollagerConfig(
+        step_ms=100,
+        windows=[100, 200]
+    )
     source = AudioSegment(timeseries=np.arange(0, 10), sample_rate=1000)
     target = AudioSegment(timeseries=np.arange(0, 10), sample_rate=1000)
     mapper = AudioMapper(
         source,
         target,
-        step_ms=100,
+        config=config
     )
 
     selected_snippets = mapper.map_audio()
 
     assert len(selected_snippets) == 4
-    chop_fn.assert_called_once_with(
-        source,
-        200,
-        step_ms=100,
-        step_factor=None
-    )
+    for window in config.windows:
+        chop_fn.assert_any_call(
+            source,
+            window,
+            step_ms=100,
+            step_factor=None
+        )

@@ -4,6 +4,7 @@ from typing import List, Tuple
 
 from .audio_dist import AudioDist
 from .audio_segment import AudioSegment
+from .collager_config import CollagerConfig
 from .search.index_collection import SearchIndexCollection
 from .util import Util
 
@@ -15,32 +16,22 @@ class AudioMapper:
         sample_audio: AudioSegment,
         target_audio: AudioSegment,
         distance_fn: callable = AudioDist.mean_mfcc_dist,
-        step_ms: int = None,
-        step_factor: float = None
+        config: CollagerConfig = CollagerConfig()
     ):
         self.source: AudioSegment = sample_audio
         self.target: AudioSegment = target_audio
         self.indices: SearchIndexCollection = SearchIndexCollection(distance_fn)
         self.distance_fn = distance_fn
-        self.step_ms = step_ms
-        self.step_factor = step_factor
+        self.config = config
 
-    def map_audio(
-        self,
-        windows: List[int] = [200],
-        overlap_ms: int = 0,
-    ) -> List[AudioSegment]:
+    def map_audio(self) -> List[AudioSegment]:
         """
         Maps the target audio to the source audio using the specified windows.
-
-        Args:
-            windows (List[int], optional): Window sizes to use in milliseconds. Defaults: [200].
-            overlap_ms (int, optional): Overlap between windows in milliseconds. Defaults: 0.
-
+        
         Returns:
             List[AudioSegment]: List of selected snippets.
         """
-        self._chop(windows)
+        self._chop()
         selected_snippets: List[AudioSegment] = []
 
         target_sr: int = self.target.sample_rate
@@ -64,13 +55,16 @@ class AudioMapper:
                 if best_snippet is None:
                     break
 
-                pointer += best_window_ms - int((overlap_ms /1000) * target_sr)
+                pointer += best_window_ms - int((self.config.declick_ms / 1000) * target_sr)
                 progress.update(task, advance=int((best_window_ms / 1000) * target_sr))
             progress.update(task, completed=100)
 
         return selected_snippets
 
-    def _chop(self, windows: List[int]) -> None:
+    def _chop(self) -> None:
+        windows = self.config.windows
+        windows = [i + self.config.declick_ms for i in windows]
+
         with Progress() as progress:
             task = progress.add_task(
                 description="[cyan]Chopping and analysing sample audio...",
@@ -80,8 +74,8 @@ class AudioMapper:
                 sample_group: List[AudioSegment] = Util.chop_audio(
                     self.source,
                     window,
-                    step_ms=self.step_ms,
-                    step_factor=self.step_factor
+                    step_ms=self.config.step_ms,
+                    step_factor=self.config.step_factor
                 )
 
                 self._index(sample_group, window)

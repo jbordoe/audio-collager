@@ -1,5 +1,4 @@
 from audio_collage.collager_config import CollagerConfig
-from audio_collage.collager import Collager
 import pytest
 
 def test_collager_config():
@@ -8,8 +7,8 @@ def test_collager_config():
         sample_file='test/data/sample.wav',
         outpath='test/data/output.wav',
         windows=[800, 400, 200, 100, 50],
-        distance_fn=Collager.DistanceFn.mfcc,
-        declick_fn=Collager.DeclickFn.sigmoid,
+        distance_fn=CollagerConfig.DistanceFn.mfcc,
+        declick_fn=CollagerConfig.DeclickFn.sigmoid,
         declick_ms=20,
         step_ms=None,
         step_factor=0.5
@@ -19,8 +18,8 @@ def test_collager_config():
     assert config.sample_file == 'test/data/sample.wav'
     assert config.outpath == 'test/data/output.wav'
     assert config.windows == [800, 400, 200, 100, 50]
-    assert config.distance_fn == Collager.DistanceFn.mfcc
-    assert config.declick_fn == Collager.DeclickFn.sigmoid
+    assert config.distance_fn == CollagerConfig.DistanceFn.mfcc
+    assert config.declick_fn == CollagerConfig.DeclickFn.sigmoid
     assert config.declick_ms == 20
     assert config.step_ms is None
     assert config.step_factor == 0.5

@@ -12,11 +12,7 @@ def create_collage_from_files(config: CollagerConfig):
     output_audio = Collager.create_collage(
         target_audio=target_audio,
         sample_audio=sample_audio,
-        declick_fn=config.declick_fn,
-        declick_ms=config.declick_ms,
-        distance_fn=config.distance_fn,
-        step_ms=config.step_ms,
-        step_factor=config.step_factor
+        config=config
     )
     
     output_audio.to_file(config.outpath)
