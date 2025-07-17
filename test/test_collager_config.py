@@ -1,9 +1,9 @@
-from audio_collage.collager_config import CollageConfig
+from audio_collage.collager_config import CollagerConfig
 from audio_collage.collager import Collager
 import pytest
 
-def test_collage_config():
-    config = CollageConfig(
+def test_collager_config():
+    config = CollagerConfig(
         target_file='test/data/target.wav',
         sample_file='test/data/sample.wav',
         outpath='test/data/output.wav',
@@ -28,7 +28,7 @@ def test_collage_config():
 def test_collage_config_errors():
     # Cannot specify both step_ms and step_factor
     with pytest.raises(ValueError):
-        CollageConfig(
+        CollagerConfig(
             target_file='test/data/target.wav',
             sample_file='test/data/sample.wav',
             outpath='test/data/output.wav',

@@ -4,7 +4,7 @@ from typing import List, Optional
 from .collager import Collager
 
 @dataclass(frozen=True)
-class CollageConfig:
+class CollagerConfig:
     """A single object to hold all collage generation parameters."""
 
     # File paths

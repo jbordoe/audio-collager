@@ -1,30 +1,22 @@
 from .collager import Collager
+from .collager_config import CollagerConfig
 from .audio_segment import AudioSegment
 
-def create_collage_from_files(
-    target_file: str,
-    sample_file: str,
-    outpath: str,
-    declick_fn: Collager.DeclickFn,
-    declick_ms: int,
-    distance_fn: Collager.DistanceFn,
-    step_ms: int,
-    step_factor: float
-):
+def create_collage_from_files(config: CollagerConfig):
     """
     Orchestrates creating a collage from file paths.
     """
-    sample_audio = AudioSegment.from_file(sample_file)
-    target_audio = AudioSegment.from_file(target_file)
+    sample_audio = AudioSegment.from_file(config.sample_file)
+    target_audio = AudioSegment.from_file(config.target_file)
 
     output_audio = Collager.create_collage(
         target_audio=target_audio,
         sample_audio=sample_audio,
-        declick_fn=declick_fn,
-        declick_ms=declick_ms,
-        distance_fn=distance_fn,
-        step_ms=step_ms,
-        step_factor=step_factor
+        declick_fn=config.declick_fn,
+        declick_ms=config.declick_ms,
+        distance_fn=config.distance_fn,
+        step_ms=config.step_ms,
+        step_factor=config.step_factor
     )
     
-    output_audio.to_file(outpath)
+    output_audio.to_file(config.outpath)

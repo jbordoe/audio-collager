@@ -7,6 +7,7 @@ from rich.progress import track
 from .util import Util
 from .audio_segment import AudioSegment
 from .collager import Collager
+from .collager_config import CollagerConfig
 from . import workflow
 
 
@@ -42,16 +43,17 @@ def collage(
     Create a collage based on a given audio file using snippets from another.
     This is a thin wrapper around the create_collage function.
     """
-    workflow.create_collage_from_files(
+    config = CollagerConfig(
         target_file=target_file,
         sample_file=sample_file,
         outpath=outpath,
+        step_ms=step_ms,
+        step_factor=step_factor,
         declick_fn=declick_fn,
         declick_ms=declick_ms,
-        distance_fn=distance_fn,
-        step_ms=step_ms,
-        step_factor=step_factor
+        distance_fn=distance_fn
     )
+    workflow.create_collage_from_files(config)
 
 @app.command()
 def chop(
@@ -88,16 +90,17 @@ def example():
     """
     Create an example collage using Amen Brother and Zimba Ku breakbeats.
     """
-    workflow.create_collage_from_files(
-        sample_file='./docs/audio/breaks/amen_brother.wav',
-        target_file='./docs/audio/breaks/black_heat__zimba_ku.wav',
+    config = CollagerConfig(
+        target_file='./docs/audio/breaks/amen_brother.wav',
+        sample_file='./docs/audio/breaks/black_heat__zimba_ku.wav',
         outpath='./collage.wav',
+        step_ms=None,
+        step_factor=None,
         declick_fn=DeclickFn.sigmoid,
         declick_ms=15,
-        distance_fn=DistanceFn.fast_mfcc,
-        step_ms=None,
-        step_factor=None
+        distance_fn=DistanceFn.fast_mfcc
     )
+    workflow.create_collage_from_files(config)
 
 if __name__ == "__main__":
     app()
