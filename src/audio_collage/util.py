@@ -9,13 +9,20 @@ class Util:
     def chop_audio(
         audio_segment: AudioSegment,
         window_size_ms: int,
-        step_ms: int = None
+        step_ms: int = None,
+        step_factor: float = None
     ):
+        if step_ms is not None and step_factor is not None:
+            raise ValueError("Cannot specify both step_ms and step_factor")
+
         timeseries = audio_segment.timeseries
         sample_rate = audio_segment.sample_rate
 
         window_size_frames = int((window_size_ms / 1000) * sample_rate)
 
+        if step_factor:
+            step_ms = window_size_ms * step_factor
+        # TODO: warn if step_ms is too small or too large
         if step_ms is None:
             step_frames = window_size_frames
         else:

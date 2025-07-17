@@ -30,6 +30,32 @@ def test_chop_audio_with_fixed_step():
     assert np.array_equal(chopped[1].timeseries, np.arange(25, 75))
     assert np.array_equal(chopped[2].timeseries, np.arange(50, 100))
 
+def test_chop_audio_with_step_factor():
+    """
+    Test chopping audio segments with a step factor
+    """
+    audio_segment = AudioSegment(
+        np.arange(50),
+        sample_rate=100
+    )
+    chopped = Util.chop_audio(audio_segment, window_size_ms=200, step_factor=0.5)
+    assert len(chopped) == 4
+    assert np.array_equal(chopped[0].timeseries, np.arange(20))
+    assert np.array_equal(chopped[1].timeseries, np.arange(10, 30))
+    assert np.array_equal(chopped[2].timeseries, np.arange(20, 40))
+    assert np.array_equal(chopped[3].timeseries, np.arange(30, 50))
+
+def test_chop_audio_with_step_factor_and_fixed_step():
+    """
+    Test chopping audio segments with a step factor and a fixed step
+    """
+    audio_segment = AudioSegment(
+        np.arange(100),
+        sample_rate=100
+    )
+    with pytest.raises(ValueError):
+        Util.chop_audio(audio_segment, window_size_ms=500, step_ms=250, step_factor=0.5)
+
 def test_concatenate_audio_without_declick():
     """
     Test concatenating audio segments without declicking
