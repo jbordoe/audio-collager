@@ -15,6 +15,8 @@ def test_collage_command(mock_create_collage_from_files):
     declick_fn = "sigmoid"
     declick_ms = "20"
     distance_fn = "mfcc"
+    step_ms = "200"
+    step_factor = "0.2"
 
     result = runner.invoke(app, [
         "collage",
@@ -24,6 +26,8 @@ def test_collage_command(mock_create_collage_from_files):
         "--declick-fn", declick_fn,
         "--declick-ms", declick_ms,
         "--distance-fn", distance_fn,
+        "--step-ms", step_ms,
+        "--step-factor", step_factor
     ])
 
     assert result.exit_code == 0
@@ -38,7 +42,9 @@ def test_collage_command(mock_create_collage_from_files):
         outpath=outpath,
         declick_fn=expected_declick_fn,
         declick_ms=int(declick_ms),
-        distance_fn=expected_distance_fn
+        distance_fn=expected_distance_fn,
+        step_ms=int(step_ms),
+        step_factor=float(step_factor)
     )
 
 @patch('audio_collage.cli.AudioSegment.from_file')
@@ -59,11 +65,18 @@ def test_chop_command(mock_chop_audio, mock_from_file):
         "--length", str(chop_length),
         "--file", input_filepath,
         "--outdir", outdir,
+        "--step-ms", "100",
+        "--step-factor", "0.5"
     ])
 
     assert result.exit_code == 0
     mock_from_file.assert_called_once_with(input_filepath)
-    mock_chop_audio.assert_called_once_with(mock_from_file.return_value, chop_length)
+    mock_chop_audio.assert_called_once_with(
+        mock_from_file.return_value,
+        chop_length,
+        step_ms=100,
+        step_factor=0.5
+    )
     for i, mock_slice in enumerate(mock_slices):
         mock_slice.to_file.assert_called_once_with(f"{outdir}/{i:04}.wav")
 
@@ -84,5 +97,7 @@ def test_example_command(mock_create_collage_from_files):
         outpath='./collage.wav',
         declick_fn=Collager.DeclickFn.sigmoid,
         declick_ms=15,
-        distance_fn=Collager.DistanceFn.fast_mfcc
+        distance_fn=Collager.DistanceFn.fast_mfcc,
+        step_ms=None,
+        step_factor=None
     )

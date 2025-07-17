@@ -14,17 +14,21 @@ class AudioMapper:
         self,
         sample_audio: AudioSegment,
         target_audio: AudioSegment,
-        distance_fn: callable = AudioDist.mean_mfcc_dist
+        distance_fn: callable = AudioDist.mean_mfcc_dist,
+        step_ms: int = None,
+        step_factor: float = None
     ):
         self.source: AudioSegment = sample_audio
         self.target: AudioSegment = target_audio
         self.indices: SearchIndexCollection = SearchIndexCollection(distance_fn)
         self.distance_fn = distance_fn
+        self.step_ms = step_ms
+        self.step_factor = step_factor
 
     def map_audio(
         self,
         windows: List[int] = [200],
-        overlap_ms: int = 0
+        overlap_ms: int = 0,
     ) -> List[AudioSegment]:
         """
         Maps the target audio to the source audio using the specified windows.
@@ -73,7 +77,12 @@ class AudioMapper:
                 total=self.source.n_samples() * len(windows)
             )
             for window in windows:
-                sample_group: List[AudioSegment] = Util.chop_audio(self.source, window)
+                sample_group: List[AudioSegment] = Util.chop_audio(
+                    self.source,
+                    window,
+                    step_ms=self.step_ms,
+                    step_factor=self.step_factor
+                )
 
                 self._index(sample_group, window)
                 progress.update(

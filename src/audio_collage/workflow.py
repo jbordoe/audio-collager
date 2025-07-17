@@ -7,7 +7,9 @@ def create_collage_from_files(
     outpath: str,
     declick_fn: Collager.DeclickFn,
     declick_ms: int,
-    distance_fn: Collager.DistanceFn
+    distance_fn: Collager.DistanceFn,
+    step_ms: int,
+    step_factor: float
 ):
     """
     Orchestrates creating a collage from file paths.
@@ -20,7 +22,9 @@ def create_collage_from_files(
         sample_audio=sample_audio,
         declick_fn=declick_fn,
         declick_ms=declick_ms,
-        distance_fn=distance_fn
+        distance_fn=distance_fn,
+        step_ms=step_ms,
+        step_factor=step_factor
     )
     
     output_audio.to_file(outpath)

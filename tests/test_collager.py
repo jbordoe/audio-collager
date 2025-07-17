@@ -18,16 +18,26 @@ def test_create_collage_success(mock_audio_mapper, mock_concatenate_audio):
     declick_fn = Collager.DeclickFn.sigmoid
     declick_ms = 20
     distance_fn = Collager.DistanceFn.mfcc
+    step_ms = 100
+    step_factor = 0.5
 
     result = Collager.create_collage(
         target_audio,
         sample_audio,
         declick_fn,
         declick_ms,
-        distance_fn
+        distance_fn,
+        step_ms=step_ms,
+        step_factor=step_factor
     )
 
-    mock_audio_mapper.assert_called_once_with(sample_audio, target_audio, distance_fn=ANY)
+    mock_audio_mapper.assert_called_once_with(
+        sample_audio,
+        target_audio, 
+        distance_fn=ANY,
+        step_ms=step_ms,
+        step_factor=step_factor
+    )
     mock_concatenate_audio.assert_called_once()
     assert isinstance(result, AudioSegment)
 

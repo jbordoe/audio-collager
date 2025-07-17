@@ -14,6 +14,8 @@ def test_create_collage_from_files(mock_create_collage, mock_from_file):
     declick_fn = Collager.DeclickFn.sigmoid
     declick_ms = 20
     distance_fn = Collager.DistanceFn.mfcc
+    step_ms = 200
+    step_factor = 0.2
 
     mock_audio_segment = MagicMock()
     mock_from_file.return_value = mock_audio_segment
@@ -27,7 +29,9 @@ def test_create_collage_from_files(mock_create_collage, mock_from_file):
         outpath,
         declick_fn,
         declick_ms,
-        distance_fn
+        distance_fn,
+        step_ms,
+        step_factor
     )
 
     assert mock_from_file.call_count == 2
@@ -38,6 +42,8 @@ def test_create_collage_from_files(mock_create_collage, mock_from_file):
         sample_audio=mock_audio_segment,
         declick_fn=declick_fn,
         declick_ms=declick_ms,
-        distance_fn=distance_fn
+        distance_fn=distance_fn,
+        step_ms=step_ms,
+        step_factor=step_factor
     )
     mock_output_audio.to_file.assert_called_once_with(outpath)

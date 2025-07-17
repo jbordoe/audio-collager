@@ -17,10 +17,12 @@ class Collager:
         sample_audio: AudioSegment,
         declick_fn: DeclickFn,
         declick_ms: int,
-        distance_fn: DistanceFn
+        distance_fn: DistanceFn,
+        step_ms: int = None,
+        step_factor: float = None
     ) -> AudioSegment:
         """
-        This is the core logic for creating a collage. It's a pure function.
+        This is the core logic for creating a collage.
         """
         default_dc_ms = {
             'sigmoid': 20,
@@ -44,11 +46,19 @@ class Collager:
         windows = [800, 400, 200, 100, 50]
         windows = [i + declick_ms for i in windows]
 
-        mapper = AudioMapper(sample_audio, target_audio, distance_fn=selected_distance_fn)
+        mapper = AudioMapper(
+            sample_audio,
+            target_audio,
+            distance_fn=selected_distance_fn,
+            step_ms=step_ms,
+            step_factor=step_factor
+        )
+
         selected_snippets = mapper.map_audio(
             windows=windows,
-            overlap_ms=declick_ms,
+            overlap_ms=declick_ms
         )
+
         output_audio = Util.concatenate_audio(
             track(selected_snippets, description="[cyan]Concatenating samples..."),
             declick_fn=declick_fn,
