@@ -6,21 +6,34 @@ from .audio_segment import AudioSegment
 
 class Util:
     @staticmethod
-    def chop_audio(audio_segment: AudioSegment, window_size_ms: int):
-        pointer = 0
+    def chop_audio(
+        audio_segment: AudioSegment,
+        window_size_ms: int,
+        step_ms: int = None
+    ):
         timeseries = audio_segment.timeseries
         sample_rate = audio_segment.sample_rate
 
         window_size_frames = int((window_size_ms / 1000) * sample_rate)
+
+        if step_ms is None:
+            step_frames = window_size_frames
+        else:
+            step_frames = int((step_ms / 1000) * sample_rate)
+
         slices = []
-        while pointer < timeseries.size:
-            slice_ts = timeseries[pointer:(pointer+window_size_frames)]
-            pointer += max(50, window_size_frames // 4)
+        start_pointer, end_pointer = 0, window_size_frames
+        while start_pointer < timeseries.size:
+            slice_ts = timeseries[start_pointer:end_pointer]
             slices.append(AudioSegment(
                 slice_ts,
                 sample_rate,
-                offset_frames=pointer
+                offset_frames=start_pointer
             ))
+            start_pointer += step_frames
+            end_pointer += step_frames
+            if end_pointer > timeseries.size:
+                break
         return slices
 
     @staticmethod
@@ -102,7 +115,7 @@ class Util:
             vector = Util.__declick_out_vector_sigmoid(n_frames)
         else:
             raise ValueError(f'Invalid declick type: {declick_type}')
-        
+
         if not in_place:
             declicked = np.copy(timeseries)
         else:
