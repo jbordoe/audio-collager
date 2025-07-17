@@ -1,6 +1,8 @@
 #!/usr/bin/python
 
+import os
 import typer
+from typing import Any, List
 from rich.progress import track
 
 from .util import Util
@@ -14,6 +16,9 @@ DistanceFn = CollagerConfig.DistanceFn
 
 app = typer.Typer()
 
+def comma_separated_ints(value: Any) -> List[int]:
+    return value if isinstance(value, list) else [int(x) for x in value.split(',')]
+
 @app.command()
 def collage(
     target_file: str = typer.Option(..., "--target", "-t", help="Path of file to be replicated."),
@@ -23,6 +28,13 @@ def collage(
     step_factor: float = typer.Option(None, "--step-factor", help="Step size of sample chops as a factor of window size"),
     declick_fn: DeclickFn = typer.Option(..., "--declick-fn", "-f", help="Declicking function."),
     declick_ms: int = typer.Option(0, "--declick-ms", "-d", help="Declick interval in milliseconds."),
+    windows: str = typer.Option(
+        "500,200,100,50",
+        "--windows",
+        "-w",
+        callback=comma_separated_ints,
+        help="List of window sizes (in ms) to use when sampling."
+    ),
     distance_fn: DistanceFn = typer.Option(
         DistanceFn.mfcc,
         "--distance-fn",
@@ -48,7 +60,8 @@ def collage(
         step_factor=step_factor,
         declick_fn=declick_fn,
         declick_ms=declick_ms,
-        distance_fn=distance_fn
+        distance_fn=distance_fn,
+        windows=windows
     )
     workflow.create_collage_from_files(config)
 
@@ -78,7 +91,8 @@ def chop(
 
     # TODO: keep track call here before passing to workflow
     for i in track(range(0, len(slices)), description=f'[cyan]Chopping [cyan bold]{input_filepath}[cyan]...'):
-        outfile_path = outdir + '/' + str(i).zfill(4) + '.wav'
+        filename = f"{chop_length}ms.{i:04}.wav"
+        outfile_path = os.path.join(outdir, filename)
         audio_slice = slices[i]
         audio_slice.to_file(outfile_path)
 
@@ -92,10 +106,11 @@ def example():
         sample_file='./docs/audio/breaks/black_heat__zimba_ku.wav',
         outpath='./collage.wav',
         step_ms=None,
-        step_factor=None,
+        step_factor=0.5,
         declick_fn=DeclickFn.sigmoid,
         declick_ms=15,
-        distance_fn=DistanceFn.fast_mfcc
+        distance_fn=DistanceFn.fast_mfcc,
+        windows=[800, 400, 200, 100]
     )
     workflow.create_collage_from_files(config)
 

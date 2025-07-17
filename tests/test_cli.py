@@ -18,6 +18,7 @@ def test_collage_command(mock_create_collage_from_files, mock_collager_config):
     declick_ms = "20"
     distance_fn = "mfcc"
     step_factor = "0.2"
+    windows = "100,200,300"
 
     result = runner.invoke(app, [
         "collage",
@@ -27,7 +28,8 @@ def test_collage_command(mock_create_collage_from_files, mock_collager_config):
         "--declick-fn", declick_fn,
         "--declick-ms", declick_ms,
         "--distance-fn", distance_fn,
-        "--step-factor", step_factor
+        "--step-factor", step_factor,
+        "--windows", windows
     ])
 
     assert result.exit_code == 0
@@ -42,6 +44,7 @@ def test_collage_command(mock_create_collage_from_files, mock_collager_config):
         distance_fn=CollagerConfig.DistanceFn[distance_fn],
         step_ms=None,
         step_factor=float(step_factor),
+        windows=[100, 200, 300]
     )
 
     # Assert a CollagerConfig was passed to workflow
@@ -67,7 +70,6 @@ def test_chop_command(mock_chop_audio, mock_from_file):
         "--length", str(chop_length),
         "--file", input_filepath,
         "--outdir", outdir,
-        "--step-ms", "100",
         "--step-factor", "0.5"
     ])
 
@@ -76,11 +78,11 @@ def test_chop_command(mock_chop_audio, mock_from_file):
     mock_chop_audio.assert_called_once_with(
         mock_from_file.return_value,
         chop_length,
-        step_ms=100,
+        step_ms=None,
         step_factor=0.5
     )
     for i, mock_slice in enumerate(mock_slices):
-        mock_slice.to_file.assert_called_once_with(f"{outdir}/{i:04}.wav")
+        mock_slice.to_file.assert_called_once_with(f"{outdir}/{chop_length}ms.{i:04}.wav")
 
 @patch('audio_collage.cli.CollagerConfig')
 @patch('audio_collage.cli.workflow.create_collage_from_files')
@@ -100,7 +102,8 @@ def test_example_command(mock_create_collage_from_files, mock_config_init):
         declick_ms=15,
         distance_fn=CollagerConfig.DistanceFn.fast_mfcc,
         step_ms=None,
-        step_factor=None
+        step_factor=0.5,
+        windows=[800, 400, 200, 100]
     )
 
     mock_create_collage_from_files.assert_called_once_with(
