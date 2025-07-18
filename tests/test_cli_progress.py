@@ -2,7 +2,7 @@ from audio_collage.collage_progress_state import CollageProgressState
 from audio_collage.cli_progress import CLIProgress
 from unittest.mock import MagicMock, patch
 
-@patch('rich.progress.Progress')
+@patch('audio_collage.cli_progress.Progress')
 def test_init(mock_progress):
     """
     Test that the constructor sets the correct attributes.
@@ -13,7 +13,7 @@ def test_init(mock_progress):
     assert mock_progress.start.called_once()
     assert progress.task_ids == {}
 
-@patch('rich.progress.Progress')
+@patch('audio_collage.cli_progress.Progress')
 def test_update(mock_progress):
     """
     Test that the update method calls the correct methods.
@@ -42,7 +42,35 @@ def test_update(mock_progress):
             completed=0
         )
 
-def test_update_with_completed_task():
+@patch('audio_collage.cli_progress.Progress')
+def test_update_progress(mock_progress):
+    """
+    Test that the update method calls the correct methods.
+    """
+    progress = CLIProgress()
+
+    for task in CollageProgressState.Task.__members__.values():
+        state = CollageProgressState(
+            task,
+            advance=13,
+            total_steps=100,
+            message="Hello world!"
+        )
+        progress.update(state)
+
+        assert mock_progress.start.called_once()
+        assert mock_progress.add_task.called_once_with(
+            description=str,
+            total=100,
+            completed=0
+        )
+        assert mock_progress.update.called_once_with(
+            progress.task_ids[state.task],
+            advance=13
+        )
+
+@patch('audio_collage.cli_progress.Progress')
+def test_update_with_completed_task(mock_progress):
     """
     Test that the update method calls the correct methods when the task is completed.
     """

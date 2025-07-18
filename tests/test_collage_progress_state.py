@@ -9,12 +9,22 @@ def test_init():
     total_steps = 100
     current_step = 50
     message = "Hello world!"
-    state = CollageProgressState(task, total_steps, current_step, message)
+    state = CollageProgressState(
+        task,
+        total_steps=total_steps,
+        current_step=current_step,
+        message=message,
+        advance=50,
+        completed=True,
+    )
 
     assert state.task == task
     assert state.total_steps == total_steps
     assert state.current_step == current_step
     assert state.message == message
+    assert not state.starting
+    assert state.advance == 50
+    assert state.completed
 
 def test_init_with_invalid_task():
     """

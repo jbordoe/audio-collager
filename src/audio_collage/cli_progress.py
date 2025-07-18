@@ -23,7 +23,13 @@ class CLIProgress:
             self._start_task(state)
 
         task_id = self.task_ids[state.task]
-        self.progress.update(task_id, completed=state.current_step)
+        if state.advance:
+            self.progress.update(
+                task_id,
+                advance=state.advance,
+            )
+        else:
+            self.progress.update(task_id, completed=state.current_step)
 
     def _start_task(self, state: CollageProgressState):
         if state.task == CollageProgressState.Task.CHOPPING:
