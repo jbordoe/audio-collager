@@ -54,6 +54,78 @@ def test_n_samples():
 
     assert audio_segment.n_samples() == 5
 
+def test_trim():
+    """
+    Tests that the trim method returns the correct trimmed AudioSegment.
+    """
+    timeseries = np.array([1, 2, 3, 4, 5])
+    sample_rate = 44100
+
+    audio_segment = AudioSegment(
+        timeseries=timeseries,
+        sample_rate=sample_rate,
+    )
+
+    trimmed_audio_segment = audio_segment.trim(3)
+
+    assert trimmed_audio_segment.n_samples() == 3
+    assert np.array_equal(trimmed_audio_segment.timeseries, np.array([1, 2, 3]))
+    # Test that the original AudioSegment is not modified
+    assert np.array_equal(audio_segment.timeseries, np.array([1, 2, 3, 4, 5]))
+
+def test_trim_inplace():
+    """
+    Tests that the trim_inplace method modifies the original AudioSegment.
+    """
+    timeseries = np.array([1, 2, 3, 4, 5])
+    sample_rate = 44100
+
+    audio_segment = AudioSegment(
+        timeseries=timeseries,
+        sample_rate=sample_rate,
+    )
+
+    audio_segment.trim(3, inplace=True)
+
+    assert audio_segment.n_samples() == 3
+    assert np.array_equal(audio_segment.timeseries, np.array([1, 2, 3]))
+
+def test_pad():
+    """
+    Tests that the pad method returns the correct padded AudioSegment.
+    """
+    timeseries = np.array([1, 2, 3, 4, 5])
+    sample_rate = 44100
+
+    audio_segment = AudioSegment(
+        timeseries=timeseries,
+        sample_rate=sample_rate,
+    )
+
+    padded_audio_segment = audio_segment.pad(10)
+
+    assert padded_audio_segment.n_samples() == 10
+    assert np.array_equal(padded_audio_segment.timeseries, np.array([1, 2, 3, 4, 5, 0, 0, 0, 0, 0]))
+    # Test that the original AudioSegment is not modified
+    assert np.array_equal(audio_segment.timeseries, np.array([1, 2, 3, 4, 5]))
+
+def test_pad_inplace():
+    """
+    Tests that the pad_inplace method modifies the original AudioSegment.
+    """
+    timeseries = np.array([1, 2, 3, 4, 5])
+    sample_rate = 44100
+
+    audio_segment = AudioSegment(
+        timeseries=timeseries,
+        sample_rate=sample_rate,
+    )
+
+    audio_segment.pad(10, inplace=True)
+
+    assert audio_segment.n_samples() == 10
+    assert np.array_equal(audio_segment.timeseries, np.array([1, 2, 3, 4, 5, 0, 0, 0, 0, 0]))
+
 def test_hash():
     """
     Tests that the hash method returns the correct hash.

@@ -60,3 +60,51 @@ class AudioSegment:
         return hashlib.sha256(
             self.timeseries.tobytes() + str(self.sample_rate).encode()
         ).hexdigest()
+
+    def trim(
+        self,
+        n_samples: int,
+        inplace: bool = False
+    ) -> Optional["AudioSegment"]:
+        """
+        Trims the AudioSegment to the specified number of samples.
+
+        Args:
+            n_samples (int): The number of samples to trim to.
+            inplace (bool, optional): Whether to modify the original AudioSegment or create a new one. Defaults to False.
+
+        Returns:
+            Optional[AudioSegment]: The trimmed AudioSegment, or None if inplace is True.
+        """
+        if inplace:
+            self.timeseries = self.timeseries[:n_samples]
+            return None
+        else:
+            return AudioSegment(
+                timeseries=self.timeseries[:n_samples],
+                sample_rate=self.sample_rate
+            )
+
+    def pad(
+        self,
+        n_samples: int,
+        inplace: bool = False
+    ) -> Optional["AudioSegment"]:
+        """
+        Pads the AudioSegment to the specified number of samples.
+
+        Args:
+            n_samples (int): The number of samples to pad to.
+            inplace (bool, optional): Whether to modify the original AudioSegment or create a new one. Defaults to False.
+
+        Returns:
+            Optional[AudioSegment]: The padded AudioSegment, or None if inplace is True.
+        """
+        if inplace:
+            self.timeseries = np.pad(self.timeseries, (0, n_samples - self.n_samples()), 'constant')
+            return None
+        else:
+            return AudioSegment(
+                timeseries=np.pad(self.timeseries, (0, n_samples - self.n_samples()), 'constant'),
+                sample_rate=self.sample_rate
+            )
