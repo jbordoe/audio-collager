@@ -1,5 +1,5 @@
 from typer.testing import CliRunner
-from unittest.mock import patch, MagicMock
+from unittest.mock import patch
 from audio_collage.cli import app
 from audio_collage.collager import CollagerConfig
 
@@ -59,11 +59,9 @@ def test_collage_command(
     )
 
 @patch('audio_collage.cli.CLIProgress')
-@patch('audio_collage.cli.AudioSegment.from_file')
-@patch('audio_collage.cli.Util.chop_audio')
+@patch('audio_collage.cli.workflow.chop_and_write_from_file')
 def test_chop_command(
-    mock_chop_audio,
-    mock_from_file,
+    mock_workflow,
     mock_cli_progress
 ):
     """
@@ -72,9 +70,6 @@ def test_chop_command(
     chop_length = 500
     input_filepath = "input.wav"
     outdir = "output_dir"
-
-    mock_slices = [MagicMock(), MagicMock()]
-    mock_chop_audio.return_value = mock_slices
 
     result = runner.invoke(app, [
         "chop",
@@ -85,16 +80,14 @@ def test_chop_command(
     ])
 
     assert result.exit_code == 0
-    mock_from_file.assert_called_once_with(input_filepath)
-    mock_chop_audio.assert_called_once_with(
-        mock_from_file.return_value,
+    mock_workflow.assert_called_once_with(
+        input_filepath,
+        outdir,
         chop_length,
         step_ms=None,
         step_factor=0.5,
-        progress_callback=mock_cli_progress.return_value.update
+        progress_callback=mock_cli_progress.return_value.update,
     )
-    for i, mock_slice in enumerate(mock_slices):
-        mock_slice.to_file.assert_called_once_with(f"{outdir}/{chop_length}ms.{i:04}.wav")
 
 @patch('audio_collage.cli.CLIProgress')
 @patch('audio_collage.cli.CollagerConfig')

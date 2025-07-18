@@ -1,10 +1,15 @@
 from unittest.mock import patch, MagicMock
-from audio_collage.workflow import create_collage_from_files
+from audio_collage.workflow import create_collage_from_files, chop_and_write_from_file
 from audio_collage.collager_config import CollagerConfig
 
+@patch('audio_collage.cli_progress.CLIProgress')
 @patch('audio_collage.workflow.AudioSegment.from_file')
 @patch('audio_collage.workflow.Collager.create_collage')
-def test_create_collage_from_files(mock_create_collage, mock_from_file):
+def test_create_collage_from_files(
+    mock_create_collage,
+    mock_from_file,
+    mock_progress
+):
     """
     Test that the workflow function calls the underlying functions correctly.
     """
@@ -42,3 +47,41 @@ def test_create_collage_from_files(mock_create_collage, mock_from_file):
         config=config
     )
     mock_output_audio.to_file.assert_called_once_with(outpath)
+
+@patch('audio_collage.audio_segment.AudioSegment.from_file')
+@patch('audio_collage.util.Util.chop_audio')
+def test_chop_and_write_from_file(
+    mock_chop_audio,
+    mock_from_file,
+):
+    """
+    Test that functions calls Util.chop_audio with the correct arguments.
+    """
+    chop_length = 500
+    input_filepath = "input.wav"
+    outdir = "output_dir"
+
+    mock_callback = MagicMock()
+    mock_slices = [MagicMock(), MagicMock()]
+    mock_chop_audio.return_value = mock_slices
+
+    chop_and_write_from_file(
+        input_filepath,
+        outdir,
+        chop_length,
+        step_ms=None,
+        step_factor=0.5,
+        progress_callback=mock_callback
+    )
+
+    mock_from_file.assert_called_once_with(input_filepath)
+    mock_chop_audio.assert_called_once_with(
+        mock_from_file.return_value,
+        chop_length,
+        step_ms=None,
+        step_factor=0.5,
+        progress_callback=mock_callback
+    )
+    for i, mock_slice in enumerate(mock_slices):
+        mock_slice.to_file.assert_called_once_with(f"{outdir}/{chop_length}ms.{i:04}.wav")
+

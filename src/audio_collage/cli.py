@@ -1,11 +1,8 @@
 #!/usr/bin/python
 
-import os
 import typer
 from typing import Any, List
 
-from .util import Util
-from .audio_segment import AudioSegment
 from .cli_progress import CLIProgress
 from .collager_config import CollagerConfig
 from . import workflow
@@ -53,6 +50,7 @@ def collage(
     This is a thin wrapper around the create_collage function.
     """
     progress = CLIProgress()
+
     config = CollagerConfig(
         target_file=target_file,
         sample_file=sample_file,
@@ -78,22 +76,16 @@ def chop(
     """
     Chop up a .wav file
     """
-    # TODO: move this to the workflow module
-    input_audio = AudioSegment.from_file(input_filepath)
     progress = CLIProgress()
-    slices = Util.chop_audio(
-        input_audio,
+
+    workflow.chop_and_write_from_file(
+        input_filepath,
+        outdir,
         chop_length,
         step_ms=step_ms,
         step_factor=step_factor,
         progress_callback=progress.update
     )
-
-    for i, audio_slice in enumerate(slices):
-        filename = f"{chop_length}ms.{i:04}.wav"
-        outfile_path = os.path.join(outdir, filename)
-        audio_slice.to_file(outfile_path)
-
 
 @app.command()
 def example():
@@ -101,6 +93,7 @@ def example():
     Create an example collage using Amen Brother and Zimba Ku breakbeats.
     """
     progress = CLIProgress()
+
     config = CollagerConfig(
         target_file='./docs/audio/breaks/amen_brother.wav',
         sample_file='./docs/audio/breaks/black_heat__zimba_ku.wav',
