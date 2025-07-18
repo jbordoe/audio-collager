@@ -43,35 +43,34 @@ class AudioMapper:
                 CollageProgressState.Task.SELECTING,
                 starting=True,
                 current_step=0,
-                total_steps=100,
+                total_steps=n_frames,
                 message="Selecting samples"
             ))
         while pointer < n_frames:
-            if self.config.progress_callback:
-                pct_complete = (pointer / n_frames) * 100
-                self.config.progress_callback(CollageProgressState(
-                    CollageProgressState.Task.SELECTING,
-                    current_step=pct_complete,
-                ))
-
             target_ts = self.target.timeseries[pointer:]
             target_chunk = AudioSegment(target_ts, target_sr)
 
-            best_snippet, best_dist, best_window_ms = self._search(target_chunk)
+            best_snippet, best_dist, best_n_frames = self._search(target_chunk)
 
             if best_snippet:
                 selected_snippets.append(best_snippet)
-
-            if best_snippet is None:
+            else:
                 break
 
-            pointer += best_window_ms - int((self.config.declick_ms / 1000) * target_sr)
+            advance = best_n_frames - int((self.config.declick_ms / 1000) * target_sr)
+            pointer += advance
+            if self.config.progress_callback:
+                self.config.progress_callback(CollageProgressState(
+                    CollageProgressState.Task.SELECTING,
+                    advance=advance,
+                ))
+
 
         if self.config.progress_callback:
             self.config.progress_callback(CollageProgressState(
                 CollageProgressState.Task.SELECTING,
                 completed=True,
-                current_step=100,
+                current_step=sum([snip.timeseries.size for snip in selected_snippets]),
             ))
 
         return selected_snippets

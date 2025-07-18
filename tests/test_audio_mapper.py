@@ -55,7 +55,16 @@ def test_map_audio_with_callback(mocker):
     """
     Test that the audio is mapped correctly with a progress callback.
     """
-    mocker.patch.object(SearchIndexCollection, 'find_best_match', return_value=(111, 22, 3))
+    mock_search_result = (
+        AudioSegment(timeseries=np.arange(0, 10), sample_rate=1000),
+        1,
+        100
+    )
+    mocker.patch.object(
+        SearchIndexCollection,
+        'find_best_match',
+        return_value=mock_search_result
+    )
     callback = mocker.Mock()
     
     config = CollagerConfig(
@@ -93,6 +102,6 @@ def test_map_audio_with_callback(mocker):
         task=CollageProgressState.Task.SELECTING,
         starting=True,
         current_step=0,
-        total_steps=100,
+        total_steps=10,
         message="Selecting samples"
     ))
