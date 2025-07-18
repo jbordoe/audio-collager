@@ -15,8 +15,8 @@ class CollageProgressState:
     task: Task
     total_steps: int = None
     current_step: int = None
-    starting: bool = False
     message: str = None
+    starting: bool = False
     completed: bool = False
 
     def __post_init__(self):

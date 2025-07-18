@@ -1,5 +1,7 @@
 from audio_collage.util import Util
 from audio_collage.audio_segment import AudioSegment
+from audio_collage.collage_progress_state import CollageProgressState
+from unittest.mock import MagicMock, call
 import numpy as np
 import pytest
 
@@ -56,6 +58,67 @@ def test_chop_audio_with_step_factor_and_fixed_step():
     with pytest.raises(ValueError):
         Util.chop_audio(audio_segment, window_size_ms=500, step_ms=250, step_factor=0.5)
 
+def test_chop_audio_with_progress_callback():
+    """
+    Test chopping audio segments with a progress callback
+    """
+    mock_callback = MagicMock()
+    audio_segment = AudioSegment(np.arange(100), sample_rate=100)
+    
+    Util.chop_audio(
+        audio_segment,
+        window_size_ms=500,
+        progress_callback=mock_callback
+    )
+   
+    assert 4 == mock_callback.call_count
+    expected_calls = [
+        call(
+            CollageProgressState(
+                CollageProgressState.Task.CHOPPING,
+                starting=True,
+                current_step=0,
+                total_steps=100,
+                message="Chopping 500ms window"
+            )
+        ),
+        call(
+            CollageProgressState(
+                CollageProgressState.Task.CHOPPING,
+                current_step=50,
+            )
+        ),
+        call(
+            CollageProgressState(
+                CollageProgressState.Task.CHOPPING,
+                current_step=100,
+            )
+        ),
+        call(
+            CollageProgressState(
+                CollageProgressState.Task.CHOPPING,
+                current_step=100,
+                completed=True,
+            )
+        )
+    ]
+    # ignore calls to __bool__()
+    filtered_calls = [call for call in mock_callback.mock_calls if not call == call.__bool__()]
+    assert all(call in filtered_calls for call in expected_calls)
+
+def test_concatenate_empty_list():
+    """
+    Test concatenating an empty list of audio segments
+    """
+    segments = []
+    result_segment = Util.concatenate_audio(
+        segments,
+        declick_fn='linear',
+        declick_ms=10
+    )
+    assert len(result_segment.timeseries) == 0
+    assert result_segment.sample_rate == 44100
+
 def test_concatenate_audio_without_declick():
     """
     Test concatenating audio segments without declicking
@@ -96,7 +159,7 @@ def test_concatenate_audio_with_declick():
     assert actual_length == expected_length, \
         f"Concatenated audio has incorrect length! Expected {expected_length}, but got {actual_length}"
 
-def concatenate_audio_with_empty_list():
+def test_concatenate_audio_with_empty_list():
     """
     Test concatenating an empty list of audio segments
     """
@@ -108,7 +171,7 @@ def concatenate_audio_with_empty_list():
     )
     assert len(result_segment.timeseries) == 0
 
-def concatenate_audio_with_different_sample_rates():
+def test_concatenate_audio_with_different_sample_rates():
     """
     Test concatenating audio segments with different sample rates
     """
@@ -118,7 +181,7 @@ def concatenate_audio_with_different_sample_rates():
     segments = [AudioSegment(timeseries, sr) for timeseries in ts_list]
     segments[0].sample_rate = 22050
     
-    with pytest.raises(ValueError):
+    with pytest.raises(Util.SampleRateMismatchError):
         Util.concatenate_audio(segments, declick_fn='linear', declick_ms=10)
 
 def test_linear_declick_in():
@@ -171,13 +234,35 @@ def test_sigmoid_declick_out():
     # assert declicking-out does not modify the original timeseries
     assert np.array_equal(timeseries, np.ones(10) * 2)
 
-def test_declick_in_place():
+def test_declick_in_inplace():
     """
     Test declicking-in in place
     """
     timeseries = np.ones(10) * 2
-    Util.declick_in(timeseries, 5, 'linear', in_place=True)
-    expected_timeseries = np.array([0., 0.5, 1., 1.5, 2., 2. ,2., 2., 2., 2.])
 
+    Util.declick_in(timeseries, 5, 'linear', in_place=True)
+    
+    expected_timeseries = np.array([0., 0.5, 1., 1.5, 2., 2. ,2., 2., 2., 2.])
     assert np.array_equal(timeseries, expected_timeseries)
 
+def test_declick_out_inplace():
+    """
+    Test declicking-in in place
+    """
+    timeseries = np.ones(10) * 2
+
+    Util.declick_out(timeseries, 5, 'linear', in_place=True)
+    
+    expected_timeseries = np.array([2., 2. ,2., 2., 2., 2., 1.5, 1., 0.5, 0.])
+    assert np.array_equal(timeseries, expected_timeseries)
+
+def test_declick_with_invalid_declick_type():
+    """
+    Test declicking with an invalid declick type
+    """
+    timeseries = np.ones(10) * 2
+    
+    with pytest.raises(ValueError):
+        Util.declick_in(timeseries, 5, 'invalid_declick_type')
+    with pytest.raises(ValueError):
+        Util.declick_out(timeseries, 5, 'invalid_declick_type')

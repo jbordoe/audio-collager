@@ -3,10 +3,10 @@
 import os
 import typer
 from typing import Any, List
-from rich.progress import track
 
 from .util import Util
 from .audio_segment import AudioSegment
+from .cli_progress import CLIProgress
 from .collager_config import CollagerConfig
 from . import workflow
 
@@ -76,25 +76,22 @@ def chop(
     """
     Chop up a .wav file
     """
-    if step_ms and step_factor:
-        print("[red]Cannot specify both --step-ms and --step-factor")
-        typer.Abort()
-
     # TODO: move this to the workflow module
     input_audio = AudioSegment.from_file(input_filepath)
+    progress = CLIProgress()
     slices = Util.chop_audio(
         input_audio,
         chop_length,
         step_ms=step_ms,
-        step_factor=step_factor
+        step_factor=step_factor,
+        progress_callback=progress.update
     )
 
-    # TODO: keep track call here before passing to workflow
-    for i in track(range(0, len(slices)), description=f'[cyan]Chopping [cyan bold]{input_filepath}[cyan]...'):
+    for i, audio_slice in enumerate(slices):
         filename = f"{chop_length}ms.{i:04}.wav"
         outfile_path = os.path.join(outdir, filename)
-        audio_slice = slices[i]
         audio_slice.to_file(outfile_path)
+
 
 @app.command()
 def example():

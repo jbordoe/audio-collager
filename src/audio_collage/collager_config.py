@@ -26,7 +26,9 @@ class CollagerConfig:
     step_ms: Optional[int] = None
     step_factor: Optional[float] = None
 
+    # Progress callback
+    progress_callback: callable = None
+
     def __post_init__(self):
         if self.step_ms is not None and self.step_factor is not None:
             raise ValueError("Cannot specify both 'step_ms' and 'step_factor'.")
-

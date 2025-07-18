@@ -52,9 +52,10 @@ def test_collage_command(mock_create_collage_from_files, mock_collager_config):
         mock_collager_config.return_value
     )
 
+@patch('audio_collage.cli.CLIProgress')
 @patch('audio_collage.cli.AudioSegment.from_file')
 @patch('audio_collage.cli.Util.chop_audio')
-def test_chop_command(mock_chop_audio, mock_from_file):
+def test_chop_command(mock_chop_audio, mock_from_file, mock_cli_progress):
     """
     Test that the chop command calls Util.chop_audio with the correct arguments.
     """
@@ -79,7 +80,8 @@ def test_chop_command(mock_chop_audio, mock_from_file):
         mock_from_file.return_value,
         chop_length,
         step_ms=None,
-        step_factor=0.5
+        step_factor=0.5,
+        progress_callback=mock_cli_progress.return_value.update
     )
     for i, mock_slice in enumerate(mock_slices):
         mock_slice.to_file.assert_called_once_with(f"{outdir}/{chop_length}ms.{i:04}.wav")

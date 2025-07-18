@@ -3,14 +3,19 @@ import numpy as np
 from typing import List
 
 from .audio_segment import AudioSegment
+from .collage_progress_state import CollageProgressState
 
 class Util:
+    class SampleRateMismatchError(Exception):
+        pass
+
     @staticmethod
     def chop_audio(
         audio_segment: AudioSegment,
         window_size_ms: int,
         step_ms: int = None,
-        step_factor: float = None
+        step_factor: float = None,
+        progress_callback: callable = None
     ):
         if step_ms is not None and step_factor is not None:
             raise ValueError("Cannot specify both step_ms and step_factor")
@@ -28,6 +33,15 @@ class Util:
         else:
             step_frames = int((step_ms / 1000) * sample_rate)
 
+        if progress_callback:
+            state = CollageProgressState(
+                CollageProgressState.Task.CHOPPING,
+                starting=True,
+                current_step=0,
+                total_steps=timeseries.size,
+                message=f"Chopping {window_size_ms}ms window"
+            )
+            progress_callback(state)
         slices = []
         start_pointer, end_pointer = 0, window_size_frames
         while start_pointer < timeseries.size:
@@ -39,8 +53,24 @@ class Util:
             ))
             start_pointer += step_frames
             end_pointer += step_frames
+
+            if progress_callback:
+                state = CollageProgressState(
+                    CollageProgressState.Task.CHOPPING,
+                    current_step=start_pointer,
+                )
+                progress_callback(state)
+
             if end_pointer > timeseries.size:
                 break
+
+        if progress_callback:
+            state = CollageProgressState(
+                CollageProgressState.Task.CHOPPING,
+                completed=True,
+                current_step=timeseries.size,
+            )
+            progress_callback(state)
         return slices
 
     @staticmethod
@@ -58,7 +88,7 @@ class Util:
         for i, snippet in enumerate(audio_list):
             if snippet.sample_rate != sample_rate:
                 # TODO: maybe we can resample the snippets to the same sample rate?
-                raise ValueError("All audio segments must have the same sample rate")
+                raise Util.SampleRateMismatchError(f"Sample rates must match. Got {snippet.sample_rate} and {sample_rate}")
 
             snippet_ts = snippet.timeseries
 
