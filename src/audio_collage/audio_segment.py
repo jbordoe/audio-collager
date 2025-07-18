@@ -3,7 +3,7 @@ import hashlib
 import librosa
 import numpy as np
 import soundfile as sf
-from typing import Optional
+from typing import List, Optional
 
 @dataclass
 class AudioSegment:
@@ -108,3 +108,30 @@ class AudioSegment:
                 timeseries=np.pad(self.timeseries, (0, n_samples - self.n_samples()), 'constant'),
                 sample_rate=self.sample_rate
             )
+
+    def split(self, n_chunks: int) -> List["AudioSegment"]:
+        """
+        Splits the AudioSegment into the specified number of chunks.
+
+        Args:
+            n_chunks (int): The number of chunks to split the AudioSegment into.
+
+        Returns:
+            List[AudioSegment]: A list of AudioSegments, each containing a chunk of the original AudioSegment.
+        """
+        if n_chunks == 1:
+            return [self]
+        if n_chunks > self.timeseries.size:
+            raise ValueError("Cannot split AudioSegment into more chunks than samples.")
+
+        chunk_size = int(self.n_samples() / n_chunks)
+        chunks = []
+        for i in range(n_chunks):
+            start = i * chunk_size
+            if i == n_chunks - 1:
+                end = self.timeseries.size
+            else:
+                end = start + chunk_size
+            ts = self.timeseries[start:end]
+            chunks.append(AudioSegment(ts, self.sample_rate))
+        return chunks

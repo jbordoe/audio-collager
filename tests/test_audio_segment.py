@@ -1,6 +1,8 @@
 import numpy as np
 import os
 
+import pytest
+
 from audio_collage.audio_segment import AudioSegment
 
 def test_audio_segment_creation():
@@ -125,6 +127,51 @@ def test_pad_inplace():
 
     assert audio_segment.n_samples() == 10
     assert np.array_equal(audio_segment.timeseries, np.array([1, 2, 3, 4, 5, 0, 0, 0, 0, 0]))
+
+def test_split():
+    """
+    Tests that the split method splits the AudioSegment into the specified number of chunks.
+    """
+    # even split
+    audio_segment = AudioSegment(
+        timeseries=np.array([1, 2, 3, 4, 5, 6, 7, 8, 9, 10]),
+        sample_rate=44100
+    )
+    chunks = audio_segment.split(2)
+
+    assert len(chunks) == 2
+    assert np.array_equal(chunks[0].timeseries, np.array([1, 2, 3, 4, 5]))
+    assert np.array_equal(chunks[1].timeseries, np.array([6, 7, 8, 9, 10]))
+
+    # odd split
+    audio_segment = AudioSegment(
+        timeseries=np.array([1, 2, 3, 4, 5, 6, 7, 8, 9, 10]),
+        sample_rate=44100
+    )
+    chunks = audio_segment.split(3)
+
+    assert len(chunks) == 3
+    assert np.array_equal(chunks[0].timeseries, np.array([1, 2, 3]))
+    assert np.array_equal(chunks[1].timeseries, np.array([4, 5, 6]))
+    assert np.array_equal(chunks[2].timeseries, np.array([7, 8, 9, 10]))
+
+    # more chunks than samples
+    audio_segment = AudioSegment(
+        timeseries=np.array([1, 2, 3, 4]),
+        sample_rate=44100
+    )
+    with pytest.raises(ValueError):
+        audio_segment.split(5)
+
+    # 1 chunks
+    audio_segment = AudioSegment(
+        timeseries=np.array([1, 2, 3, 4]),
+        sample_rate=44100
+    )
+    chunks = audio_segment.split(1)
+
+    assert len(chunks) == 1
+    assert np.array_equal(chunks[0].timeseries, np.array([1, 2, 3, 4]))
 
 def test_hash():
     """
