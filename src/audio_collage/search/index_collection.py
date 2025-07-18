@@ -46,13 +46,15 @@ class SearchIndexCollection:
         best_overall_window: int = 0
 
         target_sr = query_segment.sample_rate
-            
         for window_size, index in self.indices.items():
+            padded = False
             window_size_frames = int((window_size / 1000) * target_sr)
             
             # Ensure we don't read past the end of the timeseries
             if len(query_segment.timeseries) < window_size_frames:
-                continue
+                unpadded_frame_count = query_segment.timeseries.size
+                query_segment = query_segment.pad(window_size_frames)
+                padded = True
 
             target_chunk = AudioSegment(
                 query_segment.timeseries[:window_size_frames],
@@ -62,6 +64,8 @@ class SearchIndexCollection:
             normalized_dist = dist / window_size_frames
 
             if normalized_dist < best_overall_dist:
+                if padded:
+                    snippet = snippet.trim(unpadded_frame_count)
                 best_overall_dist = normalized_dist
                 best_overall_snippet = snippet
                 best_overall_window = window_size_frames
