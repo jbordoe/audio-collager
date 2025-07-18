@@ -52,6 +52,7 @@ def collage(
     Create a collage based on a given audio file using snippets from another.
     This is a thin wrapper around the create_collage function.
     """
+    progress = CLIProgress()
     config = CollagerConfig(
         target_file=target_file,
         sample_file=sample_file,
@@ -61,7 +62,8 @@ def collage(
         declick_fn=declick_fn,
         declick_ms=declick_ms,
         distance_fn=distance_fn,
-        windows=windows
+        windows=windows,
+        progress_callback=progress.update
     )
     workflow.create_collage_from_files(config)
 
@@ -98,6 +100,7 @@ def example():
     """
     Create an example collage using Amen Brother and Zimba Ku breakbeats.
     """
+    progress = CLIProgress()
     config = CollagerConfig(
         target_file='./docs/audio/breaks/amen_brother.wav',
         sample_file='./docs/audio/breaks/black_heat__zimba_ku.wav',
@@ -107,7 +110,8 @@ def example():
         declick_fn=DeclickFn.sigmoid,
         declick_ms=15,
         distance_fn=DistanceFn.fast_mfcc,
-        windows=[800, 400, 200, 100]
+        windows=[800, 400, 200, 100],
+        progress_callback=progress.update
     )
     workflow.create_collage_from_files(config)
 

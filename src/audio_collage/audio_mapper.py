@@ -1,10 +1,10 @@
-from rich.progress import Progress
 from typing import List, Tuple
 
 
 from .audio_dist import AudioDist
 from .audio_segment import AudioSegment
 from .collager_config import CollagerConfig
+from .collage_progress_state import CollageProgressState
 from .search.index_collection import SearchIndexCollection
 from .util import Util
 
@@ -38,26 +38,41 @@ class AudioMapper:
         n_frames: int = self.target.timeseries.size
         pointer: int = 0
 
-        with Progress() as progress:
-            task = progress.add_task('[cyan]Selecting samples...', total=100)
-            while pointer < n_frames:
+        if self.config.progress_callback:
+            self.config.progress_callback(CollageProgressState(
+                CollageProgressState.Task.SELECTING,
+                starting=True,
+                current_step=0,
+                total_steps=100,
+                message="Selecting samples"
+            ))
+        while pointer < n_frames:
+            if self.config.progress_callback:
                 pct_complete = (pointer / n_frames) * 100
-                progress.update(task, completed=pct_complete)
+                self.config.progress_callback(CollageProgressState(
+                    CollageProgressState.Task.SELECTING,
+                    current_step=pct_complete,
+                ))
 
-                target_ts = self.target.timeseries[pointer:]
-                target_chunk = AudioSegment(target_ts, target_sr)
+            target_ts = self.target.timeseries[pointer:]
+            target_chunk = AudioSegment(target_ts, target_sr)
 
-                best_snippet, best_dist, best_window_ms = self._search(target_chunk)
+            best_snippet, best_dist, best_window_ms = self._search(target_chunk)
 
-                if best_snippet:
-                    selected_snippets.append(best_snippet)
+            if best_snippet:
+                selected_snippets.append(best_snippet)
 
-                if best_snippet is None:
-                    break
+            if best_snippet is None:
+                break
 
-                pointer += best_window_ms - int((self.config.declick_ms / 1000) * target_sr)
-                progress.update(task, advance=int((best_window_ms / 1000) * target_sr))
-            progress.update(task, completed=100)
+            pointer += best_window_ms - int((self.config.declick_ms / 1000) * target_sr)
+
+        if self.config.progress_callback:
+            self.config.progress_callback(CollageProgressState(
+                CollageProgressState.Task.SELECTING,
+                completed=True,
+                current_step=100,
+            ))
 
         return selected_snippets
 
@@ -65,25 +80,35 @@ class AudioMapper:
         windows = self.config.windows
         windows = [i + self.config.declick_ms for i in windows]
 
-        with Progress() as progress:
-            task = progress.add_task(
-                description="[cyan]Chopping and analysing sample audio...",
-                total=self.source.n_samples() * len(windows)
-            )
-            for window in windows:
-                sample_group: List[AudioSegment] = Util.chop_audio(
-                    self.source,
-                    window,
-                    step_ms=self.config.step_ms,
-                    step_factor=self.config.step_factor
-                )
+        if self.config.progress_callback:
+            self.config.progress_callback(CollageProgressState(
+                CollageProgressState.Task.CHOPPING,
+                starting=True,
+                current_step=0,
+                total_steps=len(windows),
+                message=f"Chopping {len(windows)} windows"
+            ))
 
-                self._index(sample_group, window)
-                progress.update(
-                    task,
-                    advance=int((window / 1000) * self.source.sample_rate) * len(sample_group)
-                )
-            progress.update(task, completed=100)
+        for window in windows:
+            sample_group: List[AudioSegment] = Util.chop_audio(
+                self.source,
+                window,
+                step_ms=self.config.step_ms,
+                step_factor=self.config.step_factor
+            )
+
+            self._index(sample_group, window)
+            if self.config.progress_callback:
+                self.config.progress_callback(CollageProgressState(
+                    CollageProgressState.Task.CHOPPING,
+                    current_step=len(sample_group),
+                ))
+        if self.config.progress_callback:
+            self.config.progress_callback(CollageProgressState(
+                CollageProgressState.Task.CHOPPING,
+                completed=True,
+                current_step=len(windows),
+            ))
 
     def _search(self, query_audio: AudioSegment) -> Tuple[float, AudioSegment]:
         return self.indices.find_best_match(query_audio)

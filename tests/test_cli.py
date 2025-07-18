@@ -5,9 +5,14 @@ from audio_collage.collager import CollagerConfig
 
 runner = CliRunner()
 
+@patch('audio_collage.cli.CLIProgress')
 @patch('audio_collage.cli.CollagerConfig')
 @patch('audio_collage.cli.workflow.create_collage_from_files')
-def test_collage_command(mock_create_collage_from_files, mock_collager_config):
+def test_collage_command(
+    mock_create_collage_from_files,
+    mock_collager_config,
+    mock_cli_progress
+):
     """
     Test that collage command invokes workflow with the correct arguments.
     """
@@ -44,7 +49,8 @@ def test_collage_command(mock_create_collage_from_files, mock_collager_config):
         distance_fn=CollagerConfig.DistanceFn[distance_fn],
         step_ms=None,
         step_factor=float(step_factor),
-        windows=[100, 200, 300]
+        windows=[100, 200, 300],
+        progress_callback=mock_cli_progress.return_value.update
     )
 
     # Assert a CollagerConfig was passed to workflow
@@ -55,7 +61,11 @@ def test_collage_command(mock_create_collage_from_files, mock_collager_config):
 @patch('audio_collage.cli.CLIProgress')
 @patch('audio_collage.cli.AudioSegment.from_file')
 @patch('audio_collage.cli.Util.chop_audio')
-def test_chop_command(mock_chop_audio, mock_from_file, mock_cli_progress):
+def test_chop_command(
+    mock_chop_audio,
+    mock_from_file,
+    mock_cli_progress
+):
     """
     Test that the chop command calls Util.chop_audio with the correct arguments.
     """
@@ -86,9 +96,14 @@ def test_chop_command(mock_chop_audio, mock_from_file, mock_cli_progress):
     for i, mock_slice in enumerate(mock_slices):
         mock_slice.to_file.assert_called_once_with(f"{outdir}/{chop_length}ms.{i:04}.wav")
 
+@patch('audio_collage.cli.CLIProgress')
 @patch('audio_collage.cli.CollagerConfig')
 @patch('audio_collage.cli.workflow.create_collage_from_files')
-def test_example_command(mock_create_collage_from_files, mock_config_init):
+def test_example_command(
+    mock_create_collage_from_files,
+    mock_config_init,
+    mock_cli_progress
+):
     """
     Test that the example command invokes workflow with the correct arguments.
     """
@@ -105,7 +120,8 @@ def test_example_command(mock_create_collage_from_files, mock_config_init):
         distance_fn=CollagerConfig.DistanceFn.fast_mfcc,
         step_ms=None,
         step_factor=0.5,
-        windows=[800, 400, 200, 100]
+        windows=[800, 400, 200, 100],
+        progress_callback=mock_cli_progress.return_value.update
     )
 
     mock_create_collage_from_files.assert_called_once_with(

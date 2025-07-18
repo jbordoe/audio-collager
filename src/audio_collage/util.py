@@ -78,12 +78,23 @@ class Util:
         audio_list: List[AudioSegment],
         declick_fn: str = None,
         declick_ms: int = 0,
-        sample_rate: int = 44100
+        sample_rate: int = 44100,
+        progress_callback: callable = None
     ):
         if not audio_list:
             return AudioSegment(np.array([]), sample_rate=sample_rate)
 
         output_timeseries = np.array([])
+
+        if progress_callback:
+            state = CollageProgressState(
+                CollageProgressState.Task.CONCATENATING,
+                starting=True,
+                current_step=0,
+                total_steps=len(audio_list),
+                message=f"Concatenating {len(audio_list)} audio segments"
+            )
+            progress_callback(state)
 
         for i, snippet in enumerate(audio_list):
             if snippet.sample_rate != sample_rate:
@@ -114,6 +125,21 @@ class Util:
                 )
             else:
                  output_timeseries = np.concatenate([output_timeseries, snippet_ts])
+
+            if progress_callback:
+                state = CollageProgressState(
+                    CollageProgressState.Task.CONCATENATING,
+                    current_step=i,
+                )
+                progress_callback(state)
+
+        if progress_callback:
+            state = CollageProgressState(
+                CollageProgressState.Task.CONCATENATING,
+                completed=True,
+                current_step=len(audio_list),
+            )
+            progress_callback(state)
 
         return AudioSegment(output_timeseries, sample_rate)
 

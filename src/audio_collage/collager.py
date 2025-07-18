@@ -4,7 +4,6 @@ from .audio_mapper import AudioMapper
 from .audio_segment import AudioSegment
 from .collager_config import CollagerConfig
 
-from rich.progress import track
 from typing import Dict, Callable
 
 class Collager:
@@ -50,10 +49,11 @@ class Collager:
         selected_snippets = mapper.map_audio()
 
         output_audio = Util.concatenate_audio(
-            track(selected_snippets, description="[cyan]Concatenating samples..."),
+            selected_snippets,
             declick_fn=declick_fn,
             declick_ms=declick_ms,
-            sample_rate=sample_audio.sample_rate
+            sample_rate=sample_audio.sample_rate,
+            progress_callback=config.progress_callback
         )
 
         return output_audio
