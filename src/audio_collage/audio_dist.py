@@ -6,11 +6,11 @@ from .audio_segment import AudioSegment
 
 class AudioDist:
     @staticmethod
-    def mfcc_dist(a1: AudioSegment, a2: AudioSegment):
+    def mfcc_dist(a1: AudioSegment, a2: AudioSegment) -> float:
         return AudioDist.dist(a1.mfcc, a2.mfcc)
 
     @staticmethod
-    def fast_mfcc_dist(a1: AudioSegment, a2: AudioSegment):
+    def fast_mfcc_dist(a1: AudioSegment, a2: AudioSegment) -> float:
         mfcc1: np.ndarray = a1.mfcc
         mfcc2: np.ndarray = a2.mfcc
 
@@ -26,11 +26,11 @@ class AudioDist:
         return norm(mfcc1 - mfcc2)
 
     @staticmethod
-    def mean_mfcc_dist(a1: AudioSegment, a2: AudioSegment):
+    def mean_mfcc_dist(a1: AudioSegment, a2: AudioSegment) -> float:
         return norm(a1.mfcc_mean - a2.mfcc_mean)
 
     @staticmethod
-    def mfcc_cosine_dist(a1: AudioSegment, a2: AudioSegment):
+    def mfcc_cosine_dist(a1: AudioSegment, a2: AudioSegment) -> float:
         v1 = a1.mfcc.flatten()
         v2 = a2.mfcc.flatten()
 
@@ -44,16 +44,16 @@ class AudioDist:
         return 1 - np.dot(v1, v2) / (norm(v1) * norm(v2))
 
     @staticmethod
-    def chroma_dist(a1: AudioSegment, a2: AudioSegment):
+    def chroma_dist(a1: AudioSegment, a2: AudioSegment) -> float:
         return AudioDist.dist(a1.chroma_stft, a2.chroma_stft)
 
     # TODO: rework combination of chroma and mfcc. Also, rename the function!
     @staticmethod
-    def audio_dist(a1: AudioSegment, a2: AudioSegment):
+    def audio_dist(a1: AudioSegment, a2: AudioSegment) -> float:
         return AudioDist.dist(a1.chroma_stft, a2.chroma_stft) + AudioDist.dist(a1.mfcc, a2.mfcc)
 
     @staticmethod
-    def dist(mfcc1: np.ndarray, mfcc2: np.ndarray):
+    def dist(mfcc1: np.ndarray, mfcc2: np.ndarray) -> float:
         distance, _cost, _acc_cost, _path = dtw(
             mfcc1.T,
             mfcc2.T,

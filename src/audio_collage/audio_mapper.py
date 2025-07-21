@@ -1,4 +1,4 @@
-from typing import List, Tuple
+from typing import Callable, List, Tuple
 
 
 from .audio_dist import AudioDist
@@ -15,7 +15,7 @@ class AudioMapper:
         self,
         sample_audio: AudioSegment,
         target_audio: AudioSegment,
-        distance_fn: callable = AudioDist.mean_mfcc_dist,
+        distance_fn: Callable = AudioDist.mean_mfcc_dist,
         config: CollagerConfig = CollagerConfig()
     ):
         self.source: AudioSegment = sample_audio
@@ -109,7 +109,7 @@ class AudioMapper:
                 current_step=len(windows),
             ))
 
-    def _search(self, query_audio: AudioSegment) -> Tuple[float, AudioSegment]:
+    def _search(self, query_audio: AudioSegment) -> Tuple[AudioSegment, float, int]:
         return self.indices.find_best_match(query_audio)
 
     def _index(self, samples: List[AudioSegment], window: int) -> None:

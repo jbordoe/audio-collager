@@ -20,7 +20,7 @@ class AudioSegment:
         timeseries, sample_rate = librosa.load(path)
         return AudioSegment(timeseries, sample_rate, path=path)
 
-    def to_file(self, path: str):
+    def to_file(self, path: str) -> None:
         sf.write(path, self.timeseries, self.sample_rate, format='wav')
 
     @property

@@ -44,7 +44,7 @@ def collage(
         - mean_mfcc: distance of mean mfccs. Fastest but least accurate.
         """
     )
-):
+) -> None:
     """
     Create a collage based on a given audio file using snippets from another.
     This is a thin wrapper around the create_collage function.
@@ -72,7 +72,7 @@ def chop(
     step_factor: float = typer.Option(None, "--step-factor", help="Step size of sample chops as a factor of window size"),
     input_filepath: str = typer.Option(..., "--file", "-f", help="Path of file to be chopped."),
     outdir: str = typer.Option(..., "--outdir", "-o", help="Path of directory to write snippets.")
-):
+) -> None:
     """
     Chop up a .wav file
     """
@@ -88,7 +88,7 @@ def chop(
     )
 
 @app.command()
-def example():
+def example() -> None:
     """
     Create an example collage using Amen Brother and Zimba Ku breakbeats.
     """

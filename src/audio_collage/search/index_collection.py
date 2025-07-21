@@ -1,4 +1,4 @@
-from typing import Dict, List, Callable, Tuple
+from typing import Callable, Dict, List, Tuple
 import numpy as np
 
 from ..audio_segment import AudioSegment
@@ -31,7 +31,7 @@ class SearchIndexCollection:
     def find_best_match(
         self,
         query_segment: AudioSegment,
-    ) -> Tuple[float, AudioSegment, int]:
+    ) -> Tuple[AudioSegment, float, int]:
         """
         Searches across all indices to find the single best matching segment.
 
@@ -41,7 +41,7 @@ class SearchIndexCollection:
                 - Distance between the query segment and the best match
                 - Window size of the best matching segment
         """
-        best_overall_snippet: AudioSegment = None
+        best_overall_snippet: AudioSegment
         best_overall_dist: float = float('inf')
         best_overall_window: int = 0
 

@@ -1,5 +1,6 @@
 from dataclasses import dataclass
 from enum import Enum, auto
+from typing import Optional
 
 @dataclass
 class CollageProgressState:
@@ -13,13 +14,13 @@ class CollageProgressState:
         CONCATENATING = auto()
 
     task: Task
-    total_steps: int = None
-    current_step: int = None
-    message: str = None
+    total_steps: Optional[int] = None
+    current_step: Optional[int] = None
+    message: Optional[str] = None
     starting: bool = False
     advance: int = 0
     completed: bool = False
 
-    def __post_init__(self):
+    def __post_init__(self) -> None:
         if self.task not in CollageProgressState.Task.__members__.values():
             raise ValueError(f"Invalid task: {self.task}")

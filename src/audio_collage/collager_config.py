@@ -1,6 +1,6 @@
 from dataclasses import dataclass, field
 from strenum import StrEnum
-from typing import List, Optional
+from typing import List, Optional, Callable
 
 @dataclass(frozen=True)
 class CollagerConfig:
@@ -10,9 +10,9 @@ class CollagerConfig:
     DistanceFn = StrEnum('DistanceFn', {k: k for k in ['mfcc', 'fast_mfcc', 'mean_mfcc', 'mfcc_cosine']})
 
     # File paths
-    target_file: str = None
-    sample_file: str = None
-    outpath: str = None
+    target_file: Optional[str] = None
+    sample_file: Optional[str] = None
+    outpath: Optional[str] = None
 
     # Collage parameters
     windows: List[int] = field(default_factory=lambda: [800, 400, 200, 100, 50])
@@ -27,8 +27,8 @@ class CollagerConfig:
     step_factor: Optional[float] = None
 
     # Progress callback
-    progress_callback: callable = None
+    progress_callback: Optional[Callable] = None
 
-    def __post_init__(self):
+    def __post_init__(self) -> None:
         if self.step_ms is not None and self.step_factor is not None:
             raise ValueError("Cannot specify both 'step_ms' and 'step_factor'.")

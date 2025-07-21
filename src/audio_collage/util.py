@@ -1,6 +1,6 @@
 import numpy as np
 
-from typing import List
+from typing import Callable, List, Optional
 
 from .audio_segment import AudioSegment
 from .collage_progress_state import CollageProgressState
@@ -13,21 +13,21 @@ class Util:
     def chop_audio(
         audio_segment: AudioSegment,
         window_size_ms: int,
-        step_ms: int = None,
-        step_factor: float = None,
-        progress_callback: callable = None
-    ):
+        step_ms: Optional[int] = None,
+        step_factor: Optional[float] = None,
+        progress_callback: Optional[Callable] = None
+    ) -> List[AudioSegment]:
         if step_ms is not None and step_factor is not None:
             raise ValueError("Cannot specify both step_ms and step_factor")
 
-        timeseries = audio_segment.timeseries
-        sample_rate = audio_segment.sample_rate
+        timeseries: np.ndarray = audio_segment.timeseries
+        sample_rate: int = audio_segment.sample_rate
 
-        window_size_frames = int((window_size_ms / 1000) * sample_rate)
+        window_size_frames: int = int((window_size_ms / 1000) * sample_rate)
 
         if step_factor:
-            step_ms = window_size_ms * step_factor
-        # TODO: warn if step_ms is too small or too large
+            step_ms = int(window_size_ms * step_factor)
+        # TODO: warn if step_ms is too small or too largmport pdb; pdb.set_trace()  e
         if step_ms is None:
             step_frames = window_size_frames
         else:
@@ -42,7 +42,8 @@ class Util:
                 message=f"Chopping {window_size_ms}ms window"
             )
             progress_callback(state)
-        slices = []
+
+        slices: List[AudioSegment] = []
         start_pointer, end_pointer = 0, window_size_frames
         while start_pointer < timeseries.size:
             slice_ts = timeseries[start_pointer:end_pointer]
@@ -79,14 +80,14 @@ class Util:
         declick_fn: str = None,
         declick_ms: int = 0,
         sample_rate: int = 44100,
-        progress_callback: callable = None
-    ):
+        progress_callback: Optional[Callable] = None
+    ) -> AudioSegment:
         if not audio_list:
             return AudioSegment(np.array([]), sample_rate=sample_rate)
 
         output_timeseries = np.array([])
 
-        if progress_callback:
+        if progress_callback is not None:
             state = CollageProgressState(
                 CollageProgressState.Task.CONCATENATING,
                 starting=True,
@@ -126,14 +127,14 @@ class Util:
             else:
                  output_timeseries = np.concatenate([output_timeseries, snippet_ts])
 
-            if progress_callback:
+            if progress_callback is not None:
                 state = CollageProgressState(
                     CollageProgressState.Task.CONCATENATING,
                     current_step=i,
                 )
                 progress_callback(state)
 
-        if progress_callback:
+        if progress_callback is not None:
             state = CollageProgressState(
                 CollageProgressState.Task.CONCATENATING,
                 completed=True,
@@ -148,8 +149,8 @@ class Util:
         timeseries: np.ndarray,
         n_frames: int,
         declick_type: str,
-        in_place = False
-    ):
+        in_place: bool = False
+    ) -> np.ndarray:
         if declick_type == 'linear':
             vector = Util.__declick_in_vector_linear(n_frames)
         elif declick_type == 'sigmoid':
@@ -170,8 +171,8 @@ class Util:
         timeseries: np.ndarray,
         n_frames: int,
         declick_type: str,
-        in_place = False
-    ):
+        in_place: bool = False
+    ) -> np.ndarray:
         if declick_type == 'linear':
             vector = Util.__declick_out_vector_linear(n_frames)
         elif declick_type == 'sigmoid':
@@ -187,16 +188,23 @@ class Util:
         declicked[-n_frames:] *= vector
         return declicked
 
-    def __declick_in_vector_linear(n_frames: int):
+
+    @staticmethod
+    def __declick_in_vector_linear(n_frames: int) -> np.ndarray:
         return np.linspace(0., 1., n_frames)
 
-    def __declick_out_vector_linear(n_frames: int):
+
+    @staticmethod
+    def __declick_out_vector_linear(n_frames: int) -> np.ndarray:
         return np.linspace(1., 0., n_frames)
 
-    def __declick_in_vector_sigmoid(n_frames: int):
+
+    @staticmethod
+    def __declick_in_vector_sigmoid(n_frames: int) -> np.ndarray:
         lin = np.linspace(0., 1., n_frames)
         steepness = 15
         return 1 / (1 + np.exp((0.5-lin) * steepness))
 
-    def __declick_out_vector_sigmoid(n_frames: int):
+    @staticmethod
+    def __declick_out_vector_sigmoid(n_frames: int) -> np.ndarray:
         return np.flip(Util.__declick_in_vector_sigmoid(n_frames))
