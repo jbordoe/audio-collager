@@ -1,7 +1,10 @@
 #!/usr/bin/python
 
+import logging
+import os
 import typer
 from typing import Any, List
+from rich.logging import RichHandler
 
 from .cli_progress import CLIProgress
 from .collager_config import CollagerConfig
@@ -12,6 +15,15 @@ DistanceFn = CollagerConfig.DistanceFn
 
 
 app = typer.Typer()
+
+def setup_logging(log_level: str = "INFO"):
+    log_level = log_level.upper()
+    logging.basicConfig(
+        level=log_level,
+        format="%(message)s",
+        datefmt="[%X]",
+        handlers=[RichHandler(rich_tracebacks=True, show_path=False)]
+    )
 
 def comma_separated_ints(value: Any) -> List[int]:
     return value if isinstance(value, list) else [int(x) for x in value.split(',')]
@@ -43,12 +55,21 @@ def collage(
         - mfcc_cosine: cosine distance of mfccs.
         - mean_mfcc: distance of mean mfccs. Fastest but least accurate.
         """
+    ),
+    log_level: str = typer.Option(
+        None,
+        "--log-level",
+        "--log",
+        help="Set logging level. Overrides LOG_LEVEL env var."
     )
 ) -> None:
     """
     Create a collage based on a given audio file using snippets from another.
     This is a thin wrapper around the create_collage function.
     """
+    level = os.getenv("LOG_LEVEL", log_level or "INFO")
+    setup_logging(level)
+
     progress = CLIProgress()
 
     config = CollagerConfig(
@@ -76,6 +97,8 @@ def chop(
     """
     Chop up a .wav file
     """
+    level = os.getenv("LOG_LEVEL", "INFO")
+    setup_logging(level)
     progress = CLIProgress()
 
     workflow.chop_and_write_from_file(
@@ -92,6 +115,8 @@ def example() -> None:
     """
     Create an example collage using Amen Brother and Zimba Ku breakbeats.
     """
+    level = os.getenv("LOG_LEVEL", "INFO")
+    setup_logging(level)
     progress = CLIProgress()
 
     config = CollagerConfig(
